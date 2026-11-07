@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Rekapitulasi NCR Safety Oversight & Audit SMK3</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <!-- SheetJS (XLSX) for Excel import/export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- PptxGenJS for PowerPoint export -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        @media print {
+            header, footer, .no-print, button, input, select { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-break-inside { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-slate-950 text-slate-100">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 shadow-2xl no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="p-2.5 bg-gradient-to-tr from-sky-600 to-indigo-600 rounded-xl text-white shadow-lg shadow-sky-500/20 ring-1 ring-white/20">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base font-extrabold leading-tight tracking-wide text-white">
+                            DASHBOARD NCR SAFETY OVERSIGHT & AUDIT SMK3
+                        </h1>
+                    </div>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">
+                        Monitoring Kepatuhan Operational Safety & Scoring PP No. 50 Tahun 2012 (166 Kriteria)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Action Buttons -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="openAddModal()" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Tambah Temuan
+                </button>
+                <button onclick="openElementsModal()" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    Kamus 12 Elemen
+                </button>
+                <button onclick="openUploadModal()" class="inline-flex items-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-sky-600/20 cursor-pointer">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    Upload Excel
+                </button>
+                <button onclick="exportFilteredData()" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700 cursor-pointer">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+                    Export Raw
+                </button>
+                <button onclick="exportDashboardPPTX()" class="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 cursor-pointer">
+                    <i data-lucide="presentation" class="w-4 h-4"></i>
+                    Export PPTX
+                </button>
+                <button onclick="window.print()" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700 cursor-pointer">
+                    <i data-lucide="printer" class="w-4 h-4 text-sky-400"></i>
+                    Cetak PDF
+                </button>
+                <button onclick="resetDataToDefault()" title="Reset data ke default demo" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs font-bold px-2.5 py-2 rounded-xl transition border border-slate-700 cursor-pointer">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- EXECUTIVE RISK INSIGHTS & SCORING FORMULA BANNER -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950/70 to-slate-900 text-white p-5 rounded-2xl border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+                <!-- Left Column: Formulasi Scoring PP 50/2012 -->
+                <div class="lg:col-span-1 space-y-2.5 border-b lg:border-b-0 lg:border-r border-slate-800 pb-4 lg:pb-0 lg:pr-6">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                        </span>
+                        <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">Formulasi Scoring Audit SMK3</h3>
+                    </div>
+
+                    <!-- Highlighted Formula Box -->
+                    <div class="p-3 bg-slate-950/80 rounded-xl border border-indigo-500/30 space-y-1">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Standar PP No. 50 Th 2012 (166 Kriteria):</span>
+                        <div class="font-mono text-xs font-bold text-emerald-400 bg-emerald-950/40 px-2.5 py-1.5 rounded-lg border border-emerald-500/30 text-center">
+                            Skor (%) = <span class="text-amber-300">((166 - Unique Elemen) / 166) × 100%</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1 leading-normal">
+                            Rerata skor nasional dihitung dari rata-rata pencapaian skor Unique Elemen per bandara.
+                        </p>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Sumber Data Aktif:</span>
+                        <span id="activeSourceLabel" class="font-bold text-sky-400">REKAP SAFETY OVERSIGHT</span>
+                    </div>
+                </div>
+
+                <!-- Right Column: Auto-Generated Dynamic Executive Insights -->
+                <div class="lg:col-span-2 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            </span>
+                            <h3 class="text-xs font-bold text-sky-200 uppercase tracking-wider">Executive Insights & Rekomendasi Risk Oversight</h3>
+                        </div>
+                        <span id="insightBadge" class="text-[10px] bg-sky-500/20 text-sky-300 border border-sky-400/30 px-2.5 py-0.5 rounded-full font-bold">Analisis Real-Time</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5" id="executiveInsightsGrid">
+                        <!-- Dynamically Generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTER CONTROLS SECTION -->
+        <section class="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 no-print">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="filter" class="w-4 h-4 text-sky-400"></i>
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Filter Dashboard Multi-Kriteria</h2>
+                </div>
+
+                <!-- CAPA Status Quick Pills Filter -->
+                <div class="flex items-center gap-1.5 text-xs flex-wrap">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase mr-1">Status CAPA:</span>
+                    <button onclick="setStatusFilter('ALL')" id="pillStatusALL" class="px-3 py-1 rounded-full text-xs font-bold transition bg-sky-600 text-white cursor-pointer shadow-md">Semua</button>
+                    <button onclick="setStatusFilter('OPEN')" id="pillStatusOPEN" class="px-3 py-1 rounded-full text-xs font-bold transition bg-slate-800 text-rose-400 hover:bg-rose-950/40 border border-slate-700 cursor-pointer">OPEN</button>
+                    <button onclick="setStatusFilter('IN PROGRESS')" id="pillStatusPROGRESS" class="px-3 py-1 rounded-full text-xs font-bold transition bg-slate-800 text-amber-400 hover:bg-amber-950/40 border border-slate-700 cursor-pointer">IN PROGRESS</button>
+                    <button onclick="setStatusFilter('CLOSED')" id="pillStatusCLOSED" class="px-3 py-1 rounded-full text-xs font-bold transition bg-slate-800 text-emerald-400 hover:bg-emerald-950/40 border border-slate-700 cursor-pointer">CLOSED</button>
+                    
+                    <button onclick="clearAllFilters()" class="ml-2 text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 cursor-pointer">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Controls Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                <!-- 1. Bandara -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">1. Bandara</label>
+                    <select id="filterBandara" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="ALL">Semua Bandara</option>
+                    </select>
+                </div>
+
+                <!-- 2. Jenis Temuan -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">2. Jenis Temuan</label>
+                    <select id="filterJenis" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="ALL">Semua Jenis</option>
+                    </select>
+                </div>
+
+                <!-- 3. Elemen PP 50/2012 -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">3. Elemen PP 50/2012</label>
+                    <select id="filterElemen" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="ALL">Semua Elemen</option>
+                    </select>
+                </div>
+
+                <!-- 4. Kategori Temuan -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">4. Kategori Temuan</label>
+                    <select id="filterKategori" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="ALL">Semua Kategori (SOP/SDM/Fasilitas)</option>
+                    </select>
+                </div>
+
+                <!-- 5. Kriteria Temuan -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">5. Kriteria Temuan</label>
+                    <select id="filterKriteria" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="ALL">Semua Kriteria</option>
+                    </select>
+                </div>
+
+                <!-- 6. Dampak Temuan -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">6. Dampak Temuan</label>
+                    <select id="filterDampak" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="ALL">Semua Dampak</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPI SUMMARY METRICS CARDS WITH ACCURATE UNIQUE ELEMENT SMK3 SCORING -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 print-break-inside">
+            <!-- Card 1: Total Temuan Terurai -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl flex items-center justify-between hover:border-slate-700 transition">
+                <div>
+                    <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Total Temuan (Terurai)</p>
+                    <h3 id="statTotalExpanded" class="text-2xl font-black text-white mt-1">0</h3>
+                    <p class="text-[10px] text-sky-400 font-medium mt-0.5 flex items-center gap-1">
+                        <i data-lucide="layers" class="w-3 h-3"></i> Parsed & Expanded
+                    </p>
+                </div>
+                <div class="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <!-- Card 2: Rerata Skor SMK3 (%) (DYNAMIC COLOR BASED ON SCORE + MIN/MAX) -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl flex items-center justify-between hover:border-slate-700 transition relative overflow-hidden">
+                <div class="w-full">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Rerata Skor SMK3</p>
+                            <h3 id="statSmk3Score" class="text-2xl font-black text-emerald-400 mt-0.5">0%</h3>
+                        </div>
+                        <div id="statSmk3IconWrapper" class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 flex-shrink-0">
+                            <i data-lucide="award" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <p id="statSmk3ScoreLevel" class="text-[10px] text-emerald-400 font-bold mt-0.5 flex items-center gap-1">
+                        <i data-lucide="award" class="w-3 h-3"></i> Unique Elemen Average
+                    </p>
+                    
+                    <!-- HIGH / LOW SCORE COMPONENT -->
+                    <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-[9px] uppercase font-bold tracking-wide">
+                        <div>
+                            <span class="text-slate-500 block mb-0.5">Tertinggi:</span>
+                            <span id="statSmk3High" class="text-emerald-400 truncate block" title="Bandara Tertinggi">-</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block mb-0.5">Terendah:</span>
+                            <span id="statSmk3Low" class="text-rose-400 truncate block" title="Bandara Terendah">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: CAPA Completion Rate -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl flex items-center justify-between hover:border-slate-700 transition">
+                <div>
+                    <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Penyelesaian CAPA</p>
+                    <h3 id="statCapaRate" class="text-2xl font-black text-indigo-400 mt-1">0%</h3>
+                    <p id="statCapaSubtitle" class="text-[10px] text-indigo-300 font-medium mt-0.5">0 / 0 Temuan Closed</p>
+                </div>
+                <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <!-- Card 4: Bandara Ter-audit -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl flex items-center justify-between hover:border-slate-700 transition">
+                <div>
+                    <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Bandara Ter-audit</p>
+                    <h3 id="statAirportCount" class="text-2xl font-black text-amber-400 mt-1">0</h3>
+                    <p class="text-[10px] text-amber-300 font-medium mt-0.5">Lokasi Pengawasan</p>
+                </div>
+                <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+                    <i data-lucide="plane-takeoff" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <!-- Card 5: Temuan Mayor & Kritikal -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl flex items-center justify-between hover:border-slate-700 transition">
+                <div>
+                    <p class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Mayor & Kritikal</p>
+                    <h3 id="statHighSeverity" class="text-2xl font-black text-rose-400 mt-1">0</h3>
+                    <p class="text-[10px] text-rose-400 font-medium mt-0.5">Prioritas Perbaikan</p>
+                </div>
+                <div class="p-3 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- INFOGRAFIS INTERAKTIF 12 ELEMEN AUDIT SMK3 (PP 50 TAHUN 2012) -->
+        <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 print-break-inside">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="layout-grid" class="w-4 h-4 text-indigo-400"></i>
+                        Infografis Ringkasan Temuan Per Elemen 1 – 12 SMK3 (PP No. 50 / 2012)
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        <span class="font-semibold text-indigo-400">Fitur Interaktif:</span> Klik pada salah satu Elemen di bawah ini untuk membuka detail breakdown jumlah temuan per <b>Sub-Elemen</b>.
+                    </p>
+                </div>
+                <span class="text-[11px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full font-bold self-start md:self-auto flex items-center gap-1.5 no-print">
+                    <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i>
+                    Drill-Down Sub-Elemen
+                </span>
+            </div>
+
+            <!-- Interactive 12 Elements Grid Container -->
+            <div id="elementsInfographicGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </section>
+
+        <!-- CHARTS SECTION - FULL WIDTH STACKED -->
+        <section class="grid grid-cols-1 gap-6 w-full print-break-inside">
+
+            <!-- Chart 1: Temuan Terurai vs Unique Elemen Per Bandara -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl w-full">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-sky-400"></i>
+                            Jumlah Temuan Terurai & Unique Elemen Per Bandara
+                        </h3>
+                        <p class="text-xs text-slate-400">Perbandingan Jumlah Temuan Terurai dan Unique Elemen di Setiap Bandara</p>
+                    </div>
+                </div>
+                <div class="relative w-full h-80">
+                    <canvas id="chartAirport"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Keseluruhan Elemen PP 50 Th 2012 -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl w-full">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="list-ordered" class="w-4 h-4 text-sky-400"></i>
+                            Jumlah Temuan Elemen (PP 50 Th 2012) Secara Keseluruhan
+                        </h3>
+                        <p class="text-xs text-slate-400">Rekapitulasi total frekuensi seluruh kode elemen kriteria SMK3 yang teridentifikasi</p>
+                    </div>
+                </div>
+                <div id="elemenChartContainer" class="relative w-full min-h-[320px]">
+                    <canvas id="chartElemen"></canvas>
+                </div>
+            </div>
+
+            <!-- Grid 2 Columns for Doughnut & Category -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <!-- Chart 3: Jenis Temuan -->
+                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl w-full">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-sky-400"></i>
+                                Distribusi Jenis Temuan Safety Oversight
+                            </h3>
+                            <p class="text-xs text-slate-400">Proporsi Severity Temuan (Minor, Mayor, Kritikal, Observasi)</p>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-72 flex items-center justify-center">
+                        <canvas id="chartJenis"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Kategori Temuan Standar (SOP, SDM, Fasilitas) -->
+                <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl w-full">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="folder-tree" class="w-4 h-4 text-sky-400"></i>
+                                Distribusi Kategori Temuan (SOP, SDM, Fasilitas)
+                            </h3>
+                            <p class="text-xs text-slate-400">Standard Operating Procedure (SOP), SDM, dan Fasilitas</p>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-72">
+                        <canvas id="chartKategori"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 5: Kriteria Temuan Fasilitas & Operasional (Diakumulasi Otomatis) -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl w-full">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="briefcase" class="w-4 h-4 text-teal-400"></i>
+                            Kriteria Temuan Fasilitas & Operasional (Diakumulasi & Disederhanakan)
+                        </h3>
+                        <p class="text-xs text-slate-400">
+                            Jumlah temuan berdasarkan bidang teknis. Istilah serupa (seperti <i>Elektrikal & Kelistrikan</i>, <i>PK-PPK & PK3</i>, dll) diakumulasikan secara otomatis.
+                        </p>
+                    </div>
+                </div>
+                <div class="relative w-full h-80">
+                    <canvas id="chartKriteria"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 6: Dampak Temuan Per Bandara -->
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl w-full">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-sky-400"></i>
+                            Dampak Temuan Per Bandara
+                        </h3>
+                        <p class="text-xs text-slate-400">Breakdown jumlah dampak operasional dan risiko keselamatan di setiap lokasi bandara</p>
+                    </div>
+                </div>
+                <div class="relative w-full h-80">
+                    <canvas id="chartDampak"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- KESIMPULAN & SARAN STRATEGIS (NEW SECTION) -->
+        <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 print-break-inside">
+            <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                <i data-lucide="lightbulb" class="w-5 h-5 text-amber-400"></i>
+                <div>
+                    <h2 class="text-sm font-bold text-white tracking-wide">Kesimpulan & Rekomendasi Strategis AI</h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Analisis otomatis berdasarkan data temuan, severity, dan penyelesaian CAPA</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Kesimpulan Nasional -->
+                <div class="lg:col-span-1 space-y-2">
+                    <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="globe" class="w-3.5 h-3.5"></i> Kesimpulan Keseluruhan
+                    </h3>
+                    <div id="overallConclusionText" class="text-[11.5px] text-slate-300 leading-relaxed bg-slate-950/50 p-4 rounded-xl border border-slate-800/80">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Saran Per Bandara -->
+                <div class="lg:col-span-2 space-y-2">
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Rekomendasi Per Bandar Udara
+                    </h3>
+                    <div id="airportRecommendationsList" class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABEL CARD SUMMARY ELEMEN & SUB-ELEMEN PER BANDAR UDARA -->
+        <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 print-break-inside">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+                        Summary Jumlah Elemen & Sub-Elemen Per Bandar Udara
+                    </h2>
+                    <p class="text-xs text-slate-400">Rincian distribusi Elemen Utama (1-12) dan Sub-Elemen unik SMK3 yang teridentifikasi di masing-masing bandara</p>
+                </div>
+                
+                <!-- Download Excel Specific Button -->
+                <button onclick="exportAirportElementsSummaryExcel()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer no-print">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Download Spreadsheet Summary (.xlsx)
+                </button>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-200 font-bold border-b border-slate-800">
+                            <th class="p-3 rounded-l-xl">Bandar Udara</th>
+                            <th class="p-3 text-center">Total Temuan</th>
+                            <th class="p-3 text-center">Jml Elemen Utama</th>
+                            <th class="p-3">Rincian Elemen Utama (1-12)</th>
+                            <th class="p-3 text-center">Jml Sub-Elemen Unik</th>
+                            <th class="p-3 rounded-r-xl">Rincian Kode Sub-Elemen (PP 50/2012)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="airportElementsSummaryBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- REKAPITULASI SCORING AUDIT SMK3 PER BANDARA (WITH ACCURATE UNIQUE ELEMEN SCORING) -->
+        <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 print-break-inside">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+                        Matriks Rekapitulasi Scoring Audit SMK3 Per Bandara
+                    </h2>
+                    <p class="text-xs text-slate-400">
+                        Evaluasi Kepatuhan berdasarkan Formulasi 166 Kriteria Audit: <span class="font-mono font-bold text-amber-300">((166 - Unique Elemen)/166) × 100%</span>
+                    </p>
+                </div>
+
+                <!-- Download Excel Specific Button for Matrix -->
+                <button onclick="exportAirportMatrixExcel()" class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 cursor-pointer no-print">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                    Download Excel Matriks (.xlsx)
+                </button>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
+                            <th class="p-3 rounded-l-xl">Bandara</th>
+                            <th class="p-3 text-center">Total Temuan</th>
+                            <th class="p-3 text-center">Unique Elemen</th>
+                            <th class="p-3 text-center">Minor</th>
+                            <th class="p-3 text-center">Mayor</th>
+                            <th class="p-3 text-center">Kritikal</th>
+                            <th class="p-3 text-center">Observasi</th>
+                            <th class="p-3 text-center">Skor SMK3 (%)</th>
+                            <th class="p-3 text-center rounded-r-xl">Tingkat Kepatuhan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="airportMatrixBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- DETAILED DATA TABLE SECTION -->
+        <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4 print-break-inside">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="table" class="w-4 h-4 text-sky-400"></i>
+                        Detail Rekap Temuan Audit Safety Oversight
+                    </h2>
+                    <p class="text-xs text-slate-400">Menampilkan hasil penguraian elemen sesuai filter yang aktif</p>
+                </div>
+
+                <!-- Table Global Search & Page Size Select -->
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-64">
+                        <input type="text" id="tableSearchInput" onkeyup="onSearchChange()" placeholder="Cari deskripsi, bandara, elemen..." class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-2.5 top-2.5"></i>
+                    </div>
+                    <select id="pageSizeSelect" onchange="onPageSizeChange()" class="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-2.5 py-2 focus:outline-none no-print">
+                        <option value="10">10 / Hal</option>
+                        <option value="25">25 / Hal</option>
+                        <option value="50">50 / Hal</option>
+                        <option value="100">100 / Hal</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-200 font-semibold border-b border-slate-800">
+                            <th class="p-3 rounded-tl-xl w-10 text-center">No</th>
+                            <th onclick="sortTable('bandara')" class="p-3 cursor-pointer hover:bg-slate-800 transition select-none">
+                                Bandara <i data-lucide="arrow-up-down" class="w-3 h-3 inline opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('jenisTemuan')" class="p-3 cursor-pointer hover:bg-slate-800 transition select-none">
+                                Jenis <i data-lucide="arrow-up-down" class="w-3 h-3 inline opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('elemenParsed')" class="p-3 cursor-pointer hover:bg-slate-800 transition select-none">
+                                Elemen PP 50 <i data-lucide="arrow-up-down" class="w-3 h-3 inline opacity-60"></i>
+                            </th>
+                            <th class="p-3">Kategori</th>
+                            <th class="p-3">Kriteria</th>
+                            <th class="p-3">Dampak</th>
+                            <th class="p-3 min-w-[220px]">Deskripsi Temuan</th>
+                            <th onclick="sortTable('status')" class="p-3 text-center cursor-pointer hover:bg-slate-800 transition select-none">
+                                Status CAPA <i data-lucide="arrow-up-down" class="w-3 h-3 inline opacity-60"></i>
+                            </th>
+                            <th class="p-3 rounded-tr-xl text-center no-print">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTableBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Pagination Controls -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400 no-print">
+                <div id="tablePaginationInfo">
+                    Menampilkan 0 - 0 dari 0 data
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button id="btnPrevPage" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 font-bold cursor-pointer disabled:opacity-40">
+                        Prev
+                    </button>
+                    <span id="pageIndicator" class="px-3 py-1.5 font-bold text-slate-300">1 / 1</span>
+                    <button id="btnNextPage" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 font-bold cursor-pointer disabled:opacity-40">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-500 text-xs py-5 border-t border-slate-900 mt-8 no-print">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
+            <p class="font-semibold text-slate-400">System Information Safety Oversight & Audit SMK3 PP No. 50 Tahun 2012</p>
+            <p class="text-[11px] text-slate-600">Formulasi Scoring Audit 166 Kriteria: ((166 - Unique Elemen)/166) × 100%</p>
+        </div>
+    </footer>
+
+    <!-- MODAL DRILL-DOWN SUB-ELEMEN SMK3 -->
+    <div id="subElementModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-indigo-600/30 text-indigo-400 rounded-xl border border-indigo-500/30">
+                        <i data-lucide="layers" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 id="subMdlHeaderTitle" class="text-sm font-bold text-white leading-tight">Detail Sub-Elemen SMK3</h3>
+                        <p id="subMdlHeaderSub" class="text-[11px] text-sky-400">Breakdown jumlah temuan per kode sub-elemen</p>
+                    </div>
+                </div>
+                <button onclick="closeSubElementModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1 text-xs text-slate-300">
+                <!-- Elemen Info Card -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <span id="subMdlBadge" class="px-2.5 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-bold uppercase tracking-wider">Elemen 1</span>
+                        <h4 id="subMdlElemenTitle" class="text-base font-extrabold text-white mt-1">Pembangunan & Pemeliharaan Komitmen</h4>
+                        <p id="subMdlElemenDesc" class="text-xs text-slate-400 mt-0.5">Kebijakan K3, tanggung jawab, wewenang, tinjauan ulang, dan keterlibatan pekerja.</p>
+                    </div>
+                    <div class="text-right flex-shrink-0 bg-slate-900 px-4 py-2.5 rounded-xl border border-indigo-500/30 shadow-sm">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Temuan</span>
+                        <span id="subMdlTotalCount" class="text-2xl font-black text-indigo-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Sub-Element Breakdown Progress Bar List -->
+                <div class="space-y-3">
+                    <h5 class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i>
+                        Distribution Breakdown Per Kode Sub-Elemen
+                    </h5>
+                    <div id="subElementBarsContainer" class="space-y-2.5">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Related Findings Preview Table -->
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <h5 class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i>
+                            Daftar Temuan Terkait Elemen Ini
+                        </h5>
+                        <span id="subMdlTableCountInfo" class="text-[10px] text-sky-400 font-mono font-bold bg-sky-950/60 px-2.5 py-0.5 rounded border border-sky-500/30">
+                            0 Temuan
+                        </span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-64 overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-950 text-slate-300 font-bold border-b border-slate-800 sticky top-0 z-10">
+                                <tr>
+                                    <th class="p-2.5 w-10 text-center">No</th>
+                                    <th class="p-2.5">Bandara</th>
+                                    <th class="p-2.5">Kode Sub-Elemen</th>
+                                    <th class="p-2.5">Jenis</th>
+                                    <th class="p-2.5 min-w-[200px]">Deskripsi Temuan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subElementFindingsTableBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 px-6 py-3 flex justify-end border-t border-slate-800">
+                <button onclick="closeSubElementModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH TEMUAN MANUAL BARU -->
+    <div id="addModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-slate-900 w-full max-w-xl rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i>
+                    <h3 class="text-sm font-bold">Tambah Temuan Safety Oversight Baru</h3>
+                </div>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleManualAddSubmit(event)" class="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs text-slate-300">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Bandara *</label>
+                        <input type="text" id="addBandara" required placeholder="Contoh: CGK (Soekarno-Hatta)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold text-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Jenis Temuan *</label>
+                        <select id="addJenis" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold text-white">
+                            <option value="Minor">Minor</option>
+                            <option value="Mayor">Mayor</option>
+                            <option value="Kritikal">Kritikal</option>
+                            <option value="Observasi">Observasi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Kode Elemen PP 50/2012 *</label>
+                        <input type="text" id="addElemen" required placeholder="Contoh: 6.1.1, 6.5.2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none text-white">
+                        <span class="text-[10px] text-slate-500">Bisa multiple, pisah dengan koma</span>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Kategori Temuan *</label>
+                        <select id="addKategori" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold text-white">
+                            <option value="SOP">SOP</option>
+                            <option value="SDM">SDM</option>
+                            <option value="Fasilitas">Fasilitas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Kriteria Temuan</label>
+                        <input type="text" id="addKriteria" placeholder="Contoh: Elektrikal, PK-PPK, Apron..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Dampak Temuan</label>
+                        <input type="text" id="addDampak" placeholder="Contoh: Potensi Kebakaran..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Deskripsi Lengkap Temuan *</label>
+                    <textarea id="addDeskripsi" required rows="3" placeholder="Jelaskan detail uraian ketidaksesuaian yang ditemukan..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none text-white"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Status CAPA</label>
+                        <select id="addStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold text-white">
+                            <option value="OPEN">OPEN</option>
+                            <option value="IN PROGRESS">IN PROGRESS</option>
+                            <option value="CLOSED">CLOSED</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">PIC Penanggung Jawab</label>
+                        <input type="text" id="addPic" placeholder="Unit/Personel..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none text-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-[10px] text-slate-400 mb-1">Target Selesai</label>
+                        <input type="date" id="addTargetDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none text-white">
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer">
+                        Simpan Temuan Baru
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FILE UPLOAD -->
+    <div id="uploadModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform transition-all">
+            <div class="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="upload-cloud" class="w-5 h-5 text-sky-400"></i>
+                    <h3 class="text-sm font-bold">Upload File Excel / CSV Temuan Baru</h3>
+                </div>
+                <button onclick="closeUploadModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Unggah file rekapitulasi audit dalam format <b>.xlsx</b>, <b>.xls</b>, atau <b>.csv</b>. Sistem akan otomatis mendeteksi kolom, membersihkan data bandara kosong, menguraikan multiple elemen, dan mengakumulasi kriteria yang sinonim.
+                </p>
+
+                <!-- Drag & Drop Zone -->
+                <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-sky-500/40 hover:border-sky-400 bg-sky-950/20 hover:bg-sky-950/40 p-6 rounded-2xl text-center cursor-pointer transition space-y-2">
+                    <div class="mx-auto w-12 h-12 bg-sky-500/10 text-sky-400 rounded-2xl flex items-center justify-center border border-sky-500/20">
+                        <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold text-slate-200">Klik untuk memilih file atau Drag & Drop file ke sini</div>
+                    <div class="text-[11px] text-slate-500">Format yang didukung: .xlsx, .xls, .csv</div>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" onchange="handleFileSelect(event)" onclick="event.stopPropagation()" class="hidden">
+                </div>
+
+                <!-- Template Format Info -->
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                    <span class="font-bold text-slate-200 block">Judul Kolom Yang Dikenali:</span>
+                    <p><span class="font-semibold text-sky-400">BANDARA</span>, <span class="font-semibold text-sky-400">Jenis Temuan</span>, <span class="font-semibold text-sky-400">PP 50 Th 2012</span> (Elemen), <span class="font-semibold text-sky-400">Kategori Temuan</span> (SOP/SDM/Fasilitas), <span class="font-semibold text-sky-400">Kriteria Temuan</span>, <span class="font-semibold text-sky-400">Dampak Temuan</span>, <span class="font-semibold text-sky-400">Deskripsi</span>.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 px-6 py-3 flex justify-end gap-2 border-t border-slate-800">
+                <button onclick="closeUploadModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL TEMUAN & CAPA STATUS MANAGEMENT -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-amber-400"></i>
+                    <h3 class="text-sm font-bold">Rincian Temuan & Status CAPA</h3>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 text-xs text-slate-300">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Bandara</span>
+                        <span id="mdlBandara" class="font-bold text-white text-sm"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Jenis Temuan</span>
+                        <span id="mdlJenis" class="font-bold"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Elemen PP 50/2012</span>
+                        <span id="mdlElemen" class="font-bold text-sky-400 font-mono"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Kategori</span>
+                        <span id="mdlKategori" class="font-bold text-indigo-400"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Kriteria Temuan</span>
+                        <span id="mdlKriteria" class="font-semibold text-slate-200"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Dampak Temuan</span>
+                        <span id="mdlDampak" class="font-semibold text-slate-200"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase font-bold block mb-1">Deskripsi Lengkap Temuan</span>
+                    <div id="mdlDeskripsi" class="p-3 bg-slate-950 rounded-xl border border-slate-800 leading-relaxed font-normal text-slate-200 whitespace-pre-line max-h-40 overflow-y-auto"></div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-3 space-y-3">
+                    <h4 class="font-bold text-slate-200 uppercase tracking-wider text-[11px]">Tindak Lanjut & Rencana Perbaikan (CAPA):</h4>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status CAPA</label>
+                            <select id="mdlStatusSelect" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none font-bold">
+                                <option value="OPEN">OPEN (Belum Ditindaklanjuti)</option>
+                                <option value="IN PROGRESS">IN PROGRESS (Proses Perbaikan)</option>
+                                <option value="CLOSED">CLOSED (Telah Selesai & Diverifikasi)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">PIC Penanggung Jawab</label>
+                            <input type="text" id="mdlPicInput" placeholder="Contoh: Unit Kelistrikan" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Target Selesai</label>
+                            <input type="date" id="mdlTargetDateInput" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 px-6 py-3 flex items-center justify-between border-t border-slate-800">
+                <button onclick="deleteCurrentRecord()" class="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold rounded-xl transition border border-rose-500/30 cursor-pointer flex items-center gap-1.5">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Data
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeDetailModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button onclick="saveRecordStatus()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KAMUS 12 ELEMEN SMK3 (PP 50/2012) -->
+    <div id="elementsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden p-4 no-print">
+        <div class="bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5 text-indigo-400"></i>
+                    <h3 class="text-sm font-bold">Kamus 12 Elemen Audit SMK3 (PP No. 50 Tahun 2012)</h3>
+                </div>
+                <button onclick="closeElementsModal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-3 overflow-y-auto custom-scrollbar flex-1 text-xs text-slate-300">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="kamusElementsGrid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="bg-slate-950 px-6 py-3 flex justify-end border-t border-slate-800">
+                <button onclick="closeElementsModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // Global State Variables
+        const STORAGE_KEY = 'SMK3_OVERSIGHT_DATA_2025_V4';
+        let currentRawData = [];
+        let expandedRecords = [];
+        let filteredRecords = [];
+        let chartInstances = {};
+        let activeRecordId = null;
+        let currentPage = 1;
+        let pageSize = 10;
+        let searchQuery = '';
+        let sortState = { column: null, direction: 'asc' };
+
+        let filterState = {
+            bandara: 'ALL',
+            jenis: 'ALL',
+            elemen: 'ALL',
+            kategori: 'ALL',
+            kriteria: 'ALL',
+            dampak: 'ALL',
+            status: 'ALL'
+        };
+
+        // KAMUS 12 ELEMEN UTAMA SMK3 (PP 50 TAHUN 2012)
+        const SMK3_ELEMENTS_DICT = {
+            1: { title: "Pembangunan & Pemeliharaan Komitmen", desc: "Kebijakan K3, tanggung jawab, wewenang, tinjauan ulang, dan keterlibatan pekerja." },
+            2: { title: "Pembuatan & Pendokumentasian Rencana K3", desc: "Identifikasi bahaya, penilaian dan pengendalian risiko (IBPR/HIRADC)." },
+            3: { title: "Pengendalian Perancangan & Kontrak", desc: "Prosedur perancangan, modifikasi, dan peninjauan kontrak kerja/pengadaan." },
+            4: { title: "Pengendalian Dokumen", desc: "Persetujuan, penerbitan, pendistribusian, dan perubahan dokumen K3." },
+            5: { title: "Pembelian & Pengadaan Barang/Jasa", desc: "Spesifikasi pembelian, evaluasi suplier, MSDS, dan verifikasi barang." },
+            6: { title: "Keamanan Bekerja Berdasarkan SMK3", desc: "Sistem kerja aman, pemeliharaan sarana/prasarana, izin kerja, APD." },
+            7: { title: "Standar Pemantauan", desc: "Pemeriksaan lingkungan kerja, inspeksi peralatan, kalibrasi instrumen." },
+            8: { title: "Pelaporan & Perbaikan Kekurangan", desc: "Pelaporan bahaya, kecelakaan kerja, investigasi, dan tindakan koreksi." },
+            9: { title: "Pengelolaan Material & Perpindahannya", desc: "Penyimpanan material B3, penanganan bahan kimia, dan tata kelola gudang." },
+            10: { title: "Pengumpulan & Penggunaan Data", desc: "Catatan K3, data kinerja keselamatan, kerahasiaan data medis pekerja." },
+            11: { title: "Pemeriksaan Sistem Manajemen", desc: "Audit internal SMK3 secara berkala dan pemantauan tindak lanjut audit." },
+            12: { title: "Pengembangan Keterampilan & Kemampuan", desc: "Pelatihan K3, lisensi/sertifikasi personel (K3 Umum, Kelistrikan, RFFS)." }
+        };
+
+        // Default Demo Dataset
+        const DEFAULT_RAW_DATA = [
+            { "BANDARA": "CGK (Soekarno-Hatta)", "Jenis Temuan": "Mayor", "PP 50 Th 2012": "6.1.1, 6.5.2", "Kategori Temuan": "Fasilitas", "Kriteria Temuan": "Elektrikal", "Dampak Temuan": "Risiko Kebakaran & Blackout", "Deskripsi": "Panel listrik utama di Substation 3 mengalami overheat dan sertifikat pengujian berkala telah kadaluwarsa.", "Status": "OPEN", "PIC": "Unit Kelistrikan Bandara", "TargetDate": "2025-04-15" },
+            { "BANDARA": "CGK (Soekarno-Hatta)", "Jenis Temuan": "Kritikal", "PP 50 Th 2012": "6.8.1", "Kategori Temuan": "SDM", "Kriteria Temuan": "PK3", "Dampak Temuan": "Keterlambatan Respon Evakuasi", "Deskripsi": "Personel RFFS kekurangan Lisensi Personel Pemadam tingkat Kendaraan Utama yang masih aktif.", "Status": "IN PROGRESS", "PIC": "Unit ARFF / PK-PPK", "TargetDate": "2025-03-30" },
+            { "BANDARA": "SUB (Juanda)", "Jenis Temuan": "Minor", "PP 50 Th 2012": "1.4.1", "Kategori Temuan": "SOP", "Kriteria Temuan": "K3 & Sistem Manajemen", "Dampak Temuan": "Resiko Non-compliance", "Deskripsi": "Dokumen tinjauan ulang kebijakan K3 tahunan belum ditandatangani oleh General Manager.", "Status": "CLOSED", "PIC": "Unit Safety Risk", "TargetDate": "2025-01-20" },
+            { "BANDARA": "SUB (Juanda)", "Jenis Temuan": "Mayor", "PP 50 Th 2012": "6.2.1", "Kategori Temuan": "Fasilitas", "Kriteria Temuan": "Taxiway", "Dampak Temuan": "Bahaya FOD pada Pesawat", "Deskripsi": "Ditemukan keretakan permukaan beton di Taxiway C yang berpotensi menimbulkan kerikil loose material (FOD).", "Status": "OPEN", "PIC": "Unit Sisi Udara", "TargetDate": "2025-05-10" },
+            { "BANDARA": "DPS (I Gusti Ngurah Rai)", "Jenis Temuan": "Minor", "PP 50 Th 2012": "6.1.6", "Kategori Temuan": "SDM", "Kriteria Temuan": "Apron", "Dampak Temuan": "Pelanggaran Regulasi Apron", "Deskripsi": "Operator High Lift Truck tidak membawa Pass Bandara dan SIMT (Surat Izin Mengemudi Pengemudi Tim).", "Status": "IN PROGRESS", "PIC": "Unit Safety Oversight", "TargetDate": "2025-03-15" },
+            { "BANDARA": "DPS (I Gusti Ngurah Rai)", "Jenis Temuan": "Mayor", "PP 50 Th 2012": "9.1.2", "Kategori Temuan": "Fasilitas", "Kriteria Temuan": "Limbah B3", "Dampak Temuan": "Pencemaran Lingkungan & Bahaya B3", "Deskripsi": "Penyimpanan Limbah B3 oli bekas di Workshop Apron tidak dilengkapi Tempat Penampungan Ceceran (Secondary Containment).", "Status": "OPEN", "PIC": "Unit Environment", "TargetDate": "2025-04-20" },
+            { "BANDARA": "YIA (Yogyakarta International)", "Jenis Temuan": "Observasi", "PP 50 Th 2012": "4.1.1", "Kategori Temuan": "SOP", "Kriteria Temuan": "Risk Control", "Dampak Temuan": "Inkonsistensi Prosedur", "Deskripsi": "Master list dokumen K3 di unit GSE belum dimutakhirkan dengan SOP revisi terbaru.", "Status": "CLOSED", "PIC": "Unit Document Control", "TargetDate": "2025-02-01" },
+            { "BANDARA": "UPG (Sultan Hasanuddin)", "Jenis Temuan": "Kritikal", "PP 50 Th 2012": "6.5.3, 6.5.8", "Kategori Temuan": "Fasilitas", "Kriteria Temuan": "PK-PPK", "Dampak Temuan": "Kegagalan Proteksi Kebakaran", "Deskripsi": "Sistem Hydrant Gedung Terminal mengalami penurunan tekanan mendadak dan 4 APD pemadam kondisi rusak.", "Status": "OPEN", "PIC": "Unit Fasilitas Gedung", "TargetDate": "2025-03-25" },
+            { "BANDARA": "KNO (Kualanamu)", "Jenis Temuan": "Minor", "PP 50 Th 2012": "12.2.1", "Kategori Temuan": "SDM", "Kriteria Temuan": "Kelistrikan", "Dampak Temuan": "Kualifikasi Personel Kurang", "Deskripsi": "Teknisi kelistrikan belum mengikuti penyegaran sertifikasi Lisensi K3 Listrik Kemnaker.", "Status": "IN PROGRESS", "PIC": "Unit Training & HR", "TargetDate": "2025-06-15" },
+            { "BANDARA": "BPN (SAMS Sepinggan)", "Jenis Temuan": "Mayor", "PP 50 Th 2012": "7.1.1", "Kategori Temuan": "Fasilitas", "Kriteria Temuan": "Pagar Perimetar", "Dampak Temuan": "Resiko Potensial Kecelakaan Kerja", "Deskripsi": "Pagar pengaman (guardrail) di area Loading Dock Terminal Cargo terlepas dan belum diperbaiki.", "Status": "OPEN", "PIC": "Unit Civil Maintenance", "TargetDate": "2025-04-05" }
+        ];
+
+        // Helper Parsing Tokens
+        function parseElemenTokens(str) {
+            if (!str) return ["Elemen Tidak Terdefinisi"];
+            let tokens = String(str).split(/[,;/\n]+/).map(s => s.trim()).filter(Boolean);
+            return tokens.length > 0 ? tokens : [String(str).trim()];
+        }
+
+        function extractElemenNumber(token) {
+            if (!token) return null;
+            let match = String(token).trim().match(/^(\d{1,2})/);
+            if (match) {
+                let num = parseInt(match[1], 10);
+                if (num >= 1 && num <= 12) return num;
+            }
+            return null;
+        }
+
+        function normalizeKategori(raw) {
+            if (!raw) return 'SOP';
+            let s = String(raw).toUpperCase().trim();
+            if (s.includes('SDM') || s.includes('MANUSIA') || s.includes('PERSONEL') || s.includes('HUMAN') || s.includes('PEKERJA') || s.includes('TRAINING')) return 'SDM';
+            if (s.includes('FASILITAS') || s.includes('SARANA') || s.includes('ALAT') || s.includes('EQUIPMENT') || s.includes('FISIK') || s.includes('PERALATAN')) return 'Fasilitas';
+            return 'SOP';
+        }
+
+        // Normalisasi Kriteria Sinonim
+        function normalizeKriteria(rawKriteria, deskripsi) {
+            let str = rawKriteria ? String(rawKriteria).trim() : '';
+            if (!str || str === '-' || str.toLowerCase() === 'undefined' || str.toLowerCase() === 'null') {
+                return inferKriteriaFromDescription(deskripsi);
+            }
+
+            let s = str.replace(/\s+/g, ' ').trim();
+            let lower = s.toLowerCase();
+
+            if (lower === 'elektrikal' || lower === 'kelistrikan' || lower === 'listrik' || lower === 'elektrikal & mekanikal' || lower === 'mekanikal & elektrikal') {
+                return 'Elektrikal & Kelistrikan';
+            }
+            if (lower === 'pk-ppk' || lower === 'pk3' || lower === 'pemadam' || lower === 'rffs' || lower === 'keselamatan & pemadam' || lower === 'pemadam kebakaran') {
+                return 'Keselamatan & Pemadam (PK-PPK)';
+            }
+            if (lower === 'area airside' || lower === 'sisi udara' || lower === 'airside' || lower === 'apron' || lower === 'runway' || lower === 'taxiway') {
+                return 'Sisi Udara (Airside)';
+            }
+            if (lower === 'pagar perimetar' || lower === 'pagar perimeter' || lower === 'perimeter') {
+                return 'Pagar Perimeter & Keamanan';
+            }
+            if (lower === 'alat keadaan darurat' || lower === 'tanggap darurat' || lower === 'keadaan darurat' || lower === 'tanggap & alat keadaan darurat') {
+                return 'Tanggap & Alat Keadaan Darurat';
+            }
+            if (lower === 'unsafe action' || lower === 'tindakan tidak aman') {
+                return 'Unsafe Action';
+            }
+            if (lower === 'unsafe condition' || lower === 'kondisi tidak aman') {
+                return 'Unsafe Condition';
+            }
+            if (lower === 'risk control' || lower === 'pengendalian risiko') {
+                return 'Risk Control / IBPR';
+            }
+            if (lower === 'limbah b3' || lower === 'b3' || lower === 'pengelolaan b3') {
+                return 'Limbah & Material B3';
+            }
+
+            return s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        }
+
+        function inferKriteriaFromDescription(deskripsi) {
+            let d = String(deskripsi || '').toLowerCase();
+            if (d.includes('apron') || d.includes('runway') || d.includes('taxiway') || d.includes('sisi udara') || d.includes('fod')) return 'Sisi Udara (Airside)';
+            if (d.includes('listrik') || d.includes('panel') || d.includes('kabel') || d.includes('genset') || d.includes('power')) return 'Elektrikal & Kelistrikan';
+            if (d.includes('fire') || d.includes('apar') || d.includes('rffs') || d.includes('pemadam') || d.includes('hydrant')) return 'Keselamatan & Pemadam (PK-PPK)';
+            if (d.includes('gedung') || d.includes('terminal') || d.includes('fasilitas') || d.includes('pagar')) return 'Fasilitas Gedung & Sisi Darat';
+            if (d.includes('apd') || d.includes('prosedur') || d.includes('sop') || d.includes('izin kerja') || d.includes('smk3')) return 'K3 & Sistem Manajemen';
+            return 'Operasional & Umum';
+        }
+
+        // Excel / CSV Parser
+        function parseExcelSheetToJSON(worksheet) {
+            let rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+            if (!rows || rows.length === 0) return [];
+
+            let headerRowIdx = -1;
+            for (let i = 0; i < Math.min(rows.length, 25); i++) {
+                let rowStr = rows[i].map(c => String(c).toLowerCase()).join(" ");
+                if (rowStr.includes("bandara") || rowStr.includes("airport") || rowStr.includes("elemen") || rowStr.includes("deskripsi") || rowStr.includes("jenis") || rowStr.includes("temuan")) {
+                    headerRowIdx = i;
+                    break;
+                }
+            }
+
+            if (headerRowIdx === -1) {
+                return normalizeRawObjects(XLSX.utils.sheet_to_json(worksheet, { defval: "" }));
+            }
+
+            let headers = rows[headerRowIdx].map(h => String(h).trim());
+
+            let colMap = {
+                bandara: headers.findIndex(h => /bandara|airport|lokasi|site/i.test(h)),
+                jenis: headers.findIndex(h => /jenis\s*temuan|jenis|severity|tingkat|klasifikasi/i.test(h)),
+                elemen: headers.findIndex(h => /pp\s*50|elemen|kriteria\s*smk3|sub\s*elemen/i.test(h)),
+                kategori: headers.findIndex(h => /kategori\s*temuan|kategori/i.test(h)),
+                kriteria: headers.findIndex(h => /kriteria\s*temuan|kriteria/i.test(h)),
+                dampak: headers.findIndex(h => /dampak\s*temuan|dampak|impact|risiko/i.test(h)),
+                deskripsi: headers.findIndex(h => /deskripsi\s*temuan|deskripsi|uraian|temuan|detail|keterangan|catatan/i.test(h)),
+                status: headers.findIndex(h => /status|capa|tindak\s*lanjut/i.test(h)),
+                pic: headers.findIndex(h => /pic|penanggung|unit/i.test(h)),
+                targetDate: headers.findIndex(h => /target|deadline|tanggal/i.test(h))
+            };
+
+            let result = [];
+            for (let i = headerRowIdx + 1; i < rows.length; i++) {
+                let row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                let bandaraVal = colMap.bandara !== -1 && row[colMap.bandara] !== undefined ? String(row[colMap.bandara]).trim() : "";
+                let deskripsiVal = colMap.deskripsi !== -1 && row[colMap.deskripsi] !== undefined ? String(row[colMap.deskripsi]).trim() : "";
+                let elemenVal = colMap.elemen !== -1 && row[colMap.elemen] !== undefined ? String(row[colMap.elemen]).trim() : "";
+
+                if (!bandaraVal && !deskripsiVal && !elemenVal) continue;
+
+                let obj = {
+                    "BANDARA": bandaraVal,
+                    "Jenis Temuan": colMap.jenis !== -1 && row[colMap.jenis] !== undefined ? String(row[colMap.jenis]).trim() : "Minor",
+                    "PP 50 Th 2012": elemenVal,
+                    "Kategori Temuan": colMap.kategori !== -1 && row[colMap.kategori] !== undefined ? String(row[colMap.kategori]).trim() : "",
+                    "Kriteria Temuan": colMap.kriteria !== -1 && row[colMap.kriteria] !== undefined ? String(row[colMap.kriteria]).trim() : "",
+                    "Dampak Temuan": colMap.dampak !== -1 && row[colMap.dampak] !== undefined ? String(row[colMap.dampak]).trim() : "Risiko Operasional",
+                    "Deskripsi": deskripsiVal,
+                    "Status": colMap.status !== -1 && row[colMap.status] !== undefined ? String(row[colMap.status]).trim().toUpperCase() : "OPEN",
+                    "PIC": colMap.pic !== -1 && row[colMap.pic] !== undefined ? String(row[colMap.pic]).trim() : "",
+                    "TargetDate": colMap.targetDate !== -1 && row[colMap.targetDate] !== undefined ? String(row[colMap.targetDate]).trim() : ""
+                };
+                result.push(obj);
+            }
+
+            return result.length > 0 ? result : normalizeRawObjects(XLSX.utils.sheet_to_json(worksheet, { defval: "" }));
+        }
+
+        function normalizeRawObjects(rawObjects) {
+            if (!Array.isArray(rawObjects)) return [];
+            return rawObjects.map(raw => {
+                let keys = Object.keys(raw);
+                let findVal = (pattern) => {
+                    let key = keys.find(k => pattern.test(k));
+                    return key && raw[key] !== undefined ? String(raw[key]).trim() : "";
+                };
+
+                let bandara = findVal(/bandara|airport|lokasi/i);
+                let deskripsi = findVal(/deskripsi|uraian|temuan|detail|keterangan/i);
+                let elemen = findVal(/pp\s*50|elemen|smk3/i);
+
+                if (!bandara && !deskripsi && !elemen) return null;
+
+                return {
+                    "BANDARA": bandara,
+                    "Jenis Temuan": findVal(/jenis|severity|tingkat/i) || "Minor",
+                    "PP 50 Th 2012": elemen,
+                    "Kategori Temuan": findVal(/kategori/i),
+                    "Kriteria Temuan": findVal(/kriteria/i),
+                    "Dampak Temuan": findVal(/dampak|impact|risiko/i) || "Risiko Operasional",
+                    "Deskripsi": deskripsi,
+                    "Status": (findVal(/status|capa/i) || "OPEN").toUpperCase(),
+                    "PIC": findVal(/pic|unit/i),
+                    "TargetDate": findVal(/target|deadline/i)
+                };
+            }).filter(Boolean);
+        }
+
+        // Process Raw Data to Expanded Records
+        function processRawData(rawData, sourceName, skipSave = false) {
+            currentRawData = rawData || [];
+            if (!skipSave) {
+                saveToLocalStorage(currentRawData);
+            }
+
+            expandedRecords = [];
+            let recordIdCounter = 1;
+
+            currentRawData.forEach((row, rawIdx) => {
+                let bandara = row["BANDARA"] || row["Bandara"] || row["bandara"] || "";
+                bandara = String(bandara).trim();
+                if (!bandara) return;
+
+                let jenis = row["Jenis Temuan"] || row["JENIS TEMUAN"] || row["Jenis"] || "Minor";
+                jenis = String(jenis).trim();
+                if (!jenis) jenis = "Minor";
+
+                let jLower = jenis.toLowerCase();
+                if (jLower.includes("kritikal") || jLower.includes("critical")) jenis = "Kritikal";
+                else if (jLower.includes("mayor")) jenis = "Mayor";
+                else if (jLower.includes("observasi")) jenis = "Observasi";
+                else jenis = "Minor";
+
+                let elemenRaw = row["PP 50 Th 2012"] || row["Elemen"] || row["ELEMEN"] || "";
+                let elemenTokens = parseElemenTokens(elemenRaw);
+
+                let katRaw = row["Kategori Temuan"] || row["Kategori"] || "";
+                let kategoriNorm = normalizeKategori(katRaw);
+
+                let deskripsi = row["Deskripsi"] || row["DESKRIPSI"] || row["Deskripsi Temuan"] || "";
+                deskripsi = String(deskripsi).trim();
+
+                let kriteriaRaw = row["Kriteria Temuan"] || row["Kriteria"] || "";
+                let kriteriaNorm = normalizeKriteria(kriteriaRaw, deskripsi);
+
+                let dampakRaw = row["Dampak Temuan"] || row["Dampak"] || "";
+                dampakRaw = String(dampakRaw).trim();
+                if (!dampakRaw || dampakRaw === "-") dampakRaw = "Risiko Operasional";
+
+                let statusRaw = row["Status"] || row["STATUS"] || "OPEN";
+                statusRaw = String(statusRaw).trim().toUpperCase();
+                if (!["OPEN", "IN PROGRESS", "CLOSED"].includes(statusRaw)) {
+                    if (statusRaw.includes("PROG") || statusRaw.includes("PROSES")) statusRaw = "IN PROGRESS";
+                    else if (statusRaw.includes("CLOSE") || statusRaw.includes("SELESAI")) statusRaw = "CLOSED";
+                    else statusRaw = "OPEN";
+                }
+
+                let picVal = row["PIC"] || row["pic"] || "";
+                let targetDateVal = row["TargetDate"] || row["targetDate"] || "";
+
+                elemenTokens.forEach(token => {
+                    let mainElemenNum = extractElemenNumber(token);
+                    expandedRecords.push({
+                        id: recordIdCounter++,
+                        rawIndex: rawIdx,
+                        bandara: bandara,
+                        jenisTemuan: jenis,
+                        elemenParsed: token,
+                        elemenMainNum: mainElemenNum,
+                        elemenOriginal: elemenRaw,
+                        kategori: kategoriNorm,
+                        kriteria: kriteriaNorm,
+                        dampak: dampakRaw,
+                        deskripsi: deskripsi,
+                        status: statusRaw,
+                        pic: picVal,
+                        targetDate: targetDateVal
+                    });
+                });
+            });
+
+            populateFilterDropdowns();
+            renderKamusGrid();
+            applyFilters();
+        }
+
+        // Save & Load LocalStorage
+        function saveToLocalStorage(data) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn("Unable to save to LocalStorage", e);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                let saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    let parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn("Unable to load from LocalStorage", e);
+            }
+            return null;
+        }
+
+        // Populate Filter Dropdowns dynamically
+        function populateFilterDropdowns() {
+            let bandaraSet = new Set();
+            let jenisSet = new Set();
+            let elemenSet = new Set();
+            let kategoriSet = new Set(['SOP', 'SDM', 'Fasilitas']);
+            let kriteriaSet = new Set();
+            let dampakSet = new Set();
+
+            expandedRecords.forEach(r => {
+                if (r.bandara) bandaraSet.add(r.bandara);
+                if (r.jenisTemuan) jenisSet.add(r.jenisTemuan);
+                if (r.elemenParsed) elemenSet.add(r.elemenParsed);
+                if (r.kategori) kategoriSet.add(r.kategori);
+                if (r.kriteria) kriteriaSet.add(r.kriteria);
+                if (r.dampak) dampakSet.add(r.dampak);
+            });
+
+            let fillSelect = (elemId, setObj, defaultLabel) => {
+                let sel = document.getElementById(elemId);
+                if (!sel) return;
+                let currentVal = sel.value;
+                sel.innerHTML = `<option value="ALL">${defaultLabel}</option>`;
+                Array.from(setObj).sort().forEach(val => {
+                    let opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = val;
+                    sel.appendChild(opt);
+                });
+                if (setObj.has(currentVal)) {
+                    sel.value = currentVal;
+                } else {
+                    sel.value = 'ALL';
+                }
+            };
+
+            fillSelect('filterBandara', bandaraSet, 'Semua Bandara');
+            fillSelect('filterJenis', jenisSet, 'Semua Jenis');
+            fillSelect('filterElemen', elemenSet, 'Semua Elemen');
+            fillSelect('filterKategori', kategoriSet, 'Semua Kategori (SOP/SDM/Fasilitas)');
+            fillSelect('filterKriteria', kriteriaSet, 'Semua Kriteria');
+            fillSelect('filterDampak', dampakSet, 'Semua Dampak');
+        }
+
+        function renderKamusGrid() {
+            let container = document.getElementById('kamusElementsGrid');
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                let el = SMK3_ELEMENTS_DICT[i];
+                let div = document.createElement('div');
+                div.className = 'p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-indigo-500/50 transition space-y-1';
+                div.innerHTML = `
+                    <span class="font-bold text-indigo-400 text-xs block">Elemen ${i}: ${el.title}</span>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">${el.desc}</p>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        if (typeof ChartDataLabels !== 'undefined' && typeof Chart !== 'undefined') {
+            try { Chart.register(ChartDataLabels); } catch (e) {}
+        }
+
+        function safeCreateIcons() {
+            if (window.lucide && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
+        }
+
+        function setStatusFilter(statusVal) {
+            filterState.status = statusVal;
+            ['ALL', 'OPEN', 'PROGRESS', 'CLOSED'].forEach(s => {
+                let btn = document.getElementById(`pillStatus${s}`);
+                if (btn) {
+                    let targetVal = s === 'PROGRESS' ? 'IN PROGRESS' : s;
+                    if (filterState.status === targetVal) {
+                        btn.className = "px-3 py-1 rounded-full text-xs font-bold transition bg-sky-600 text-white cursor-pointer shadow-md";
+                    } else {
+                        btn.className = "px-3 py-1 rounded-full text-xs font-bold transition bg-slate-800 text-slate-400 hover:bg-slate-700 cursor-pointer border border-slate-700";
+                    }
+                }
+            });
+            applyFilters();
+        }
+
+        function applyFilters() {
+            filterState.bandara = document.getElementById('filterBandara').value;
+            filterState.jenis = document.getElementById('filterJenis').value;
+            filterState.elemen = document.getElementById('filterElemen').value;
+            filterState.kategori = document.getElementById('filterKategori').value;
+            filterState.kriteria = document.getElementById('filterKriteria').value;
+            filterState.dampak = document.getElementById('filterDampak').value;
+
+            filteredRecords = expandedRecords.filter(r => {
+                if (filterState.bandara !== 'ALL' && r.bandara !== filterState.bandara) return false;
+                if (filterState.jenis !== 'ALL' && r.jenisTemuan !== filterState.jenis) return false;
+                if (filterState.elemen !== 'ALL' && r.elemenParsed !== filterState.elemen) return false;
+                if (filterState.kategori !== 'ALL' && r.kategori !== filterState.kategori) return false;
+                if (filterState.kriteria !== 'ALL' && r.kriteria !== filterState.kriteria) return false;
+                if (filterState.dampak !== 'ALL' && r.dampak !== filterState.dampak) return false;
+                if (filterState.status !== 'ALL' && r.status !== filterState.status) return false;
+                return true;
+            });
+
+            currentPage = 1;
+            updateDashboardVisuals();
+        }
+
+        function clearAllFilters() {
+            document.getElementById('filterBandara').value = 'ALL';
+            document.getElementById('filterJenis').value = 'ALL';
+            document.getElementById('filterElemen').value = 'ALL';
+            document.getElementById('filterKategori').value = 'ALL';
+            document.getElementById('filterKriteria').value = 'ALL';
+            document.getElementById('filterDampak').value = 'ALL';
+            document.getElementById('tableSearchInput').value = '';
+            searchQuery = '';
+            setStatusFilter('ALL');
+            showToast("Semua filter telah di-reset", "info");
+        }
+
+        /* ==========================================================================
+           EXECUTIVE INSIGHTS & VISUALIZATIONS UPDATE (CORRECT UNIQUE ELEMEN SCORING)
+           ========================================================================== */
+
+        function updateDashboardVisuals() {
+            let totalExpanded = filteredRecords.length;
+
+            let mapAirport = {};
+            let closedCount = 0;
+            let highSeverityCount = 0;
+
+            filteredRecords.forEach(r => {
+                let b = r.bandara;
+                if (!mapAirport[b]) {
+                    mapAirport[b] = {
+                        totalExpanded: 0,
+                        uniqueElemenSet: new Set(),
+                        minor: 0, mayor: 0, kritikal: 0, observasi: 0
+                    };
+                }
+
+                mapAirport[b].totalExpanded++;
+                mapAirport[b].uniqueElemenSet.add(r.elemenParsed);
+
+                let j = r.jenisTemuan.toLowerCase();
+                if (j.includes('minor')) mapAirport[b].minor++;
+                else if (j.includes('mayor')) mapAirport[b].mayor++;
+                else if (j.includes('kritikal') || j.includes('critical')) mapAirport[b].kritikal++;
+                else if (j.includes('observasi')) mapAirport[b].observasi++;
+
+                if (j.includes('mayor') || j.includes('kritikal') || j.includes('critical')) {
+                    highSeverityCount++;
+                }
+                if (r.status === 'CLOSED') closedCount++;
+            });
+
+            let airportKeys = Object.keys(mapAirport);
+            let totalAirportsCount = airportKeys.length;
+
+            // Compute score for each airport based on its Unique Elemen count: ((166 - uniqueElemenCount) / 166) * 100%
+            let totalUniqueElemenSum = 0;
+            let airportScoresSum = 0;
+            let highestAirport = "-";
+            let highestScore = -1;
+            let lowestAirport = "-";
+            let lowestScore = 101;
+
+            airportKeys.forEach(b => {
+                let uCount = mapAirport[b].uniqueElemenSet.size;
+                totalUniqueElemenSum += uCount;
+                let score = Math.max(0, Math.min(100, ((166 - uCount) / 166) * 100));
+                airportScoresSum += score;
+                
+                if(score > highestScore) { highestScore = score; highestAirport = b; }
+                if(score < lowestScore) { lowestScore = score; lowestAirport = b; }
+            });
+
+            // Overall National Average SMK3 Score (Average of the Unique Element Scores)
+            let overallSmk3Score = totalAirportsCount > 0 ? (airportScoresSum / totalAirportsCount).toFixed(1) : "100.0";
+            let avgUniqueElemen = totalAirportsCount > 0 ? (totalUniqueElemenSum / totalAirportsCount).toFixed(1) : "0";
+
+            // Determine Score Level & Styling based on standard
+            let scoreNum = parseFloat(overallSmk3Score);
+            let scoreLevelText = "MEMUASKAN";
+            let scoreColorClass = "text-emerald-400";
+            let scoreBgClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+
+            if (scoreNum < 60) {
+                scoreLevelText = "KURANG";
+                scoreColorClass = "text-rose-400";
+                scoreBgClass = "bg-rose-500/10 border-rose-500/20 text-rose-400";
+            } else if (scoreNum < 85) {
+                scoreLevelText = "BAIK";
+                scoreColorClass = "text-amber-400";
+                scoreBgClass = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+            }
+
+            // CAPA Completion Rate
+            let capaRate = totalExpanded > 0 ? Math.round((closedCount / totalExpanded) * 100) : 0;
+
+            document.getElementById('statTotalExpanded').textContent = totalExpanded.toLocaleString();
+            
+            // Apply Dynamic Formatting to Score KPI Card
+            let scoreTitle = document.getElementById('statSmk3Score');
+            scoreTitle.textContent = `${overallSmk3Score}%`;
+            scoreTitle.className = `text-2xl font-black mt-0.5 ${scoreColorClass}`;
+            
+            let scoreSubtitle = document.getElementById('statSmk3ScoreLevel');
+            scoreSubtitle.className = `text-[10px] font-bold mt-0.5 flex items-center gap-1 ${scoreColorClass}`;
+            scoreSubtitle.innerHTML = `<i data-lucide="award" class="w-3 h-3"></i> ${scoreLevelText} (Rerata ${avgUniqueElemen} Uniq. Elemen)`;
+            
+            document.getElementById('statSmk3IconWrapper').className = `p-2.5 rounded-xl border flex-shrink-0 ${scoreBgClass}`;
+            
+            // Apply High/Low Texts
+            document.getElementById('statSmk3High').textContent = highestAirport !== "-" ? `${highestAirport} (${highestScore.toFixed(1)}%)` : "-";
+            document.getElementById('statSmk3Low').textContent = lowestAirport !== "-" ? `${lowestAirport} (${lowestScore.toFixed(1)}%)` : "-";
+
+            document.getElementById('statCapaRate').textContent = `${capaRate}%`;
+            document.getElementById('statCapaSubtitle').textContent = `${closedCount} / ${totalExpanded} Temuan Closed`;
+            document.getElementById('statAirportCount').textContent = totalAirportsCount.toLocaleString();
+            document.getElementById('statHighSeverity').textContent = highSeverityCount.toLocaleString();
+
+            // Render Dynamic Executive Insights
+            renderExecutiveInsights(overallSmk3Score);
+
+            // Render Strategic Conclusions & Recommendations
+            renderConclusions(overallSmk3Score, capaRate);
+
+            // Render Interactive Infographic & Charts
+            render12ElementsInfographic();
+            renderChartAirport();
+            renderChartElemenOverall();
+            renderChartJenis();
+            renderChartKategori();
+            renderChartKriteria();
+            renderChartDampak();
+
+            // Render Tables
+            renderAirportElementsSummaryTable();
+            renderAirportMatrix();
+            renderDetailTable();
+        }
+
+        // Generate Dynamic Executive Insights Cards
+        function renderExecutiveInsights(avgScore) {
+            let container = document.getElementById('executiveInsightsGrid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (filteredRecords.length === 0) {
+                container.innerHTML = `<div class="col-span-2 text-xs text-slate-500 italic">Tidak ada data untuk dianalisis pada filter aktif.</div>`;
+                return;
+            }
+
+            let totalFilteredCount = filteredRecords.length;
+            let elemMap = {};
+            let airportRiskMap = {};
+
+            filteredRecords.forEach(r => {
+                if (r.elemenMainNum) {
+                    elemMap[r.elemenMainNum] = (elemMap[r.elemenMainNum] || 0) + 1;
+                }
+                if (!airportRiskMap[r.bandara]) airportRiskMap[r.bandara] = { critical: 0, mayor: 0, minor: 0 };
+                let j = r.jenisTemuan.toLowerCase();
+                if (j.includes('kritikal')) airportRiskMap[r.bandara].critical++;
+                if (j.includes('mayor')) airportRiskMap[r.bandara].mayor++;
+                if (j.includes('minor')) airportRiskMap[r.bandara].minor++;
+            });
+
+            // Calculate Top 5 Dominant Elements
+            let sortedElems = Object.keys(elemMap).sort((a, b) => elemMap[b] - elemMap[a]);
+            let top5Elems = sortedElems.slice(0, 5);
+
+            let top5ListHtml = top5Elems.map((num, idx) => {
+                let info = SMK3_ELEMENTS_DICT[num];
+                let count = elemMap[num];
+                let pct = totalFilteredCount > 0 ? ((count / totalFilteredCount) * 100).toFixed(1) : 0;
+                return `
+                    <div class="flex items-center justify-between text-[11px] py-0.5 border-b border-slate-800/50 last:border-0">
+                        <span class="text-slate-200 truncate pr-2 font-semibold">
+                            <b class="text-amber-400 font-mono">${idx + 1}.</b> Elemen ${num}: ${info ? info.title : 'Elemen ' + num}
+                        </span>
+                        <span class="text-amber-300 font-mono font-bold flex-shrink-0">${count} (${pct}%)</span>
+                    </div>
+                `;
+            }).join('');
+
+            let highestRiskAirport = Object.keys(airportRiskMap).sort((a, b) => {
+                let scoreB = (airportRiskMap[b].critical * 3) + airportRiskMap[b].mayor;
+                let scoreA = (airportRiskMap[a].critical * 3) + airportRiskMap[a].mayor;
+                return scoreB - scoreA;
+            })[0];
+
+            let openCount = filteredRecords.filter(r => r.status === 'OPEN').length;
+
+            let card1 = `
+                <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                    <span class="text-[10px] text-amber-400 font-bold uppercase flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Top 5 Elemen Paling Dominan
+                    </span>
+                    <div class="space-y-0.5 pt-1">
+                        ${top5ListHtml}
+                    </div>
+                </div>
+            `;
+
+            let card2 = `
+                <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                    <span class="text-[10px] text-rose-400 font-bold uppercase flex items-center gap-1">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Prioritas Penanganan CAPA
+                    </span>
+                    <h4 class="text-xs font-extrabold text-white">
+                        Bandara Berisiko: ${highestRiskAirport || 'N/A'}
+                    </h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                        Rerata skor kepatuhan nasional <b>${avgScore}%</b>. Terdapat <b>${openCount} temuan status OPEN</b> dari total ${totalFilteredCount} temuan yang memerlukan perbaikan dan tindak lanjut prioritas.
+                    </p>
+                </div>
+            `;
+
+            container.innerHTML = card1 + card2;
+            safeCreateIcons();
+        }
+
+        // Generate Conclusions & Recommendations (Overall & Per Airport)
+        function renderConclusions(avgScore, capaRate) {
+            let containerOverall = document.getElementById('overallConclusionText');
+            let containerAirport = document.getElementById('airportRecommendationsList');
+            if (!containerOverall || !containerAirport) return;
+
+            if (filteredRecords.length === 0) {
+                containerOverall.innerHTML = '<span class="text-slate-500 italic">Tidak ada data untuk dianalisis pada filter aktif.</span>';
+                containerAirport.innerHTML = '<span class="text-slate-500 italic">Tidak ada data untuk dianalisis pada filter aktif.</span>';
+                return;
+            }
+
+            // 1. Overall Logic
+            let catMap = { 'SOP': 0, 'SDM': 0, 'Fasilitas': 0 };
+            let elemMap = {};
+            let kritikalTotal = 0;
+            let mayorTotal = 0;
+
+            filteredRecords.forEach(r => {
+                let cat = normalizeKategori(r.kategori);
+                if (catMap[cat] !== undefined) catMap[cat]++;
+                else catMap[cat] = 1;
+                
+                if (r.elemenMainNum) elemMap[r.elemenMainNum] = (elemMap[r.elemenMainNum] || 0) + 1;
+                if (r.jenisTemuan.toLowerCase().includes('kritikal')) kritikalTotal++;
+                if (r.jenisTemuan.toLowerCase().includes('mayor')) mayorTotal++;
+            });
+
+            let topCat = Object.keys(catMap).reduce((a, b) => catMap[a] > catMap[b] ? a : b);
+            let topElemKeys = Object.keys(elemMap).sort((a, b) => elemMap[b] - elemMap[a]);
+            let topElemNum = topElemKeys.length > 0 ? topElemKeys[0] : '-';
+            let topElemInfo = SMK3_ELEMENTS_DICT[topElemNum] ? SMK3_ELEMENTS_DICT[topElemNum].title : `Elemen ${topElemNum}`;
+
+            let statusKepatuhan = parseFloat(avgScore) >= 85 ? "Memuaskan" : parseFloat(avgScore) >= 60 ? "Baik" : "Kurang";
+
+            let overallText = `Secara nasional/keseluruhan, tingkat kepatuhan SMK3 berada pada kategori <b>${statusKepatuhan} (${avgScore}%)</b>. Mayoritas ketidaksesuaian bersumber dari kendala aspek <b>${topCat}</b>. Fokus strategis perbaikan harus diarahkan pada <b>Elemen ${topElemNum} (${topElemInfo})</b> yang merupakan penyumbang temuan terbesar.<br><br>Dengan tingkat penyelesaian CAPA sebesar <b>${capaRate}%</b> dan masih terdapat <b>${kritikalTotal} temuan kritikal & ${mayorTotal} temuan mayor</b>, disarankan agar Kantor Pusat (Head Office) meningkatkan intensitas monitoring berkala dan memberikan tenggat waktu yang tegas (time-bound) untuk penutupan temuan berisiko tinggi.`;
+
+            containerOverall.innerHTML = overallText;
+
+            // 2. Airport Logic with Detailed Finding Description Analysis
+            let airportMap = {};
+            filteredRecords.forEach(r => {
+                let b = r.bandara ? String(r.bandara).trim() : '';
+                if (!b) return;
+                if (!airportMap[b]) airportMap[b] = { total: 0, kritikal: 0, mayor: 0, elems: {}, open: 0, deskripsiList: [] };
+                airportMap[b].total++;
+                if (r.jenisTemuan.toLowerCase().includes('kritikal')) airportMap[b].kritikal++;
+                if (r.jenisTemuan.toLowerCase().includes('mayor')) airportMap[b].mayor++;
+                if (r.status === 'OPEN') airportMap[b].open++;
+                if (r.elemenMainNum) airportMap[b].elems[r.elemenMainNum] = (airportMap[b].elems[r.elemenMainNum] || 0) + 1;
+                if (r.deskripsi && r.deskripsi.trim() !== '' && r.deskripsi !== '-' && !r.deskripsi.match(/^[0-9.\s]+$/)) {
+                    airportMap[b].deskripsiList.push(r.deskripsi.trim());
+                }
+            });
+
+            let airportHtml = '';
+            Object.keys(airportMap).sort().forEach(b => {
+                let d = airportMap[b];
+                let topEKeys = Object.keys(d.elems).sort((a, b) => d.elems[b] - d.elems[a]);
+                let topE = topEKeys.length > 0 ? topEKeys[0] : '-';
+                let tInfo = SMK3_ELEMENTS_DICT[topE] ? SMK3_ELEMENTS_DICT[topE].title : `Elemen ${topE}`;
+
+                // Extract summary of actual descriptions for this airport
+                let sampleDescStr = '';
+                if (d.deskripsiList.length > 0) {
+                    let uniqueDescs = Array.from(new Set(d.deskripsiList)).slice(0, 2);
+                    sampleDescStr = uniqueDescs.join('; ');
+                }
+
+                let saranText = "";
+                if (d.kritikal > 0) {
+                    saranText = `<span class="text-rose-400 font-bold uppercase tracking-wider text-[10px] border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 rounded mr-1">Prioritas Darurat:</span> Selesaikan <b>${d.kritikal} temuan Kritikal</b> & <b>${d.open} CAPA OPEN</b> segera. `;
+                } else if (d.mayor > 0) {
+                    saranText = `<span class="text-orange-400 font-bold uppercase tracking-wider text-[10px] border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded mr-1">Perhatian Khusus:</span> Tindak lanjuti <b>${d.mayor} temuan Mayor</b>. `;
+                } else {
+                    saranText = `<span class="text-emerald-400 font-bold uppercase tracking-wider text-[10px] border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 rounded mr-1">Tindak Lanjut Routine:</span> Pertahankan kepatuhan & selesaikan <b>${d.open} CAPA berstatus OPEN</b>. `;
+                }
+
+                saranText += `Fokus perbaikan utama di bandara ini bertumpu pada pemenuhan <b>Elemen ${topE}</b> (${tInfo}).`;
+
+                if (sampleDescStr) {
+                    saranText += `<br><span class="text-slate-300 font-medium">Catatan Isu Utama:</span> <i class="text-slate-400">"${sampleDescStr}"</i>`;
+                }
+
+                airportHtml += `
+                    <div class="py-2.5 border-b border-slate-800/60 last:border-0 space-y-0.5">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <i data-lucide="plane" class="w-3.5 h-3.5 text-sky-400"></i> ${b}
+                            </h4>
+                            <span class="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                ${d.total} Temuan (${d.open} Open)
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">${saranText}</p>
+                    </div>
+                `;
+            });
+
+            containerAirport.innerHTML = airportHtml;
+        }
+
+        // 12 Elemen Infographic Grid
+        function render12ElementsInfographic() {
+            let container = document.getElementById('elementsInfographicGrid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let totalFilteredCount = filteredRecords.length;
+            let elemenCounts = {};
+            let elemenAirportsMap = {};
+            for (let i = 1; i <= 12; i++) {
+                elemenCounts[i] = 0;
+                elemenAirportsMap[i] = new Set();
+            }
+
+            filteredRecords.forEach(r => {
+                if (r.elemenMainNum && r.elemenMainNum >= 1 && r.elemenMainNum <= 12) {
+                    elemenCounts[r.elemenMainNum]++;
+                    if (r.bandara && String(r.bandara).trim() !== '') {
+                        elemenAirportsMap[r.elemenMainNum].add(String(r.bandara).trim());
+                    }
+                }
+            });
+
+            for (let i = 1; i <= 12; i++) {
+                let info = SMK3_ELEMENTS_DICT[i];
+                let count = elemenCounts[i];
+                let airportCount = elemenAirportsMap[i].size;
+                let percent = totalFilteredCount > 0 ? ((count / totalFilteredCount) * 100).toFixed(1) : 0;
+
+                let card = document.createElement('div');
+                card.onclick = () => openSubElementModal(i);
+                card.className = `p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group shadow-md ${
+                    count > 0 
+                    ? 'bg-slate-950 border-slate-800 hover:border-indigo-500' 
+                    : 'bg-slate-950/40 border-slate-900 opacity-60 hover:opacity-100'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="px-2.5 py-1 bg-indigo-600 group-hover:bg-indigo-500 text-white font-extrabold text-[11px] rounded-lg shadow-md transition">
+                            Elemen ${i < 10 ? '0' + i : i}
+                        </span>
+                        <div class="text-right">
+                            <span class="text-xl font-black ${count > 0 ? 'text-indigo-400' : 'text-slate-600'}">${count}</span>
+                            <span class="text-[10px] text-slate-500 block font-medium">Temuan</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 space-y-1">
+                        <h4 class="text-xs font-bold text-slate-200 line-clamp-1 group-hover:text-indigo-300 transition" title="${info.title}">
+                            ${info.title}
+                        </h4>
+                        <p class="text-[10px] text-slate-400 line-clamp-2 leading-tight">${info.desc}</p>
+                    </div>
+
+                    <div class="mt-2.5 flex items-center justify-between text-[10px] text-slate-400 font-semibold bg-slate-900/80 px-2 py-1 rounded-md border border-slate-800/80">
+                        <span class="flex items-center gap-1 text-sky-400">
+                            <i data-lucide="plane-takeoff" class="w-3 h-3"></i> ${airportCount} Bandara
+                        </span>
+                        <span class="text-slate-400 font-bold">${percent}% Total</span>
+                    </div>
+
+                    <div class="mt-2.5 pt-2 border-t border-slate-900 flex items-center justify-end text-[10px]">
+                        <span class="font-bold text-indigo-400 group-hover:translate-x-0.5 transition flex items-center gap-0.5">
+                            Sub-Elemen <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                        </span>
+                    </div>
+
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                `;
+                container.appendChild(card);
+            }
+
+            safeCreateIcons();
+        }
+
+        function openSubElementModal(elemenNum) {
+            let info = SMK3_ELEMENTS_DICT[elemenNum];
+            if (!info) return;
+
+            document.getElementById('subMdlBadge').textContent = `Elemen ${elemenNum < 10 ? '0' + elemenNum : elemenNum}`;
+            document.getElementById('subMdlElemenTitle').textContent = info.title;
+            document.getElementById('subMdlElemenDesc').textContent = info.desc;
+
+            let records = filteredRecords.filter(r => r.elemenMainNum === elemenNum);
+            document.getElementById('subMdlTotalCount').textContent = records.length;
+
+            let subMap = {};
+            records.forEach(r => {
+                let code = r.elemenParsed;
+                subMap[code] = (subMap[code] || 0) + 1;
+            });
+
+            let subBarsContainer = document.getElementById('subElementBarsContainer');
+            subBarsContainer.innerHTML = '';
+
+            let sortedSubCodes = Object.keys(subMap).sort();
+
+            if (sortedSubCodes.length === 0) {
+                subBarsContainer.innerHTML = `<div class="p-4 bg-slate-950 rounded-xl text-center text-slate-500 italic">Tidak ada temuan yang tercatat untuk Elemen ${elemenNum} pada filter aktif ini.</div>`;
+            } else {
+                let maxVal = Math.max(...Object.values(subMap));
+                sortedSubCodes.forEach(code => {
+                    let cnt = subMap[code];
+                    let barPercent = maxVal > 0 ? ((cnt / maxVal) * 100) : 0;
+
+                    let div = document.createElement('div');
+                    div.className = 'space-y-1';
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between text-xs font-semibold">
+                            <span class="text-indigo-400 font-bold font-mono">Sub-Elemen ${code}</span>
+                            <span class="text-slate-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/30 font-bold text-[11px]">${cnt} Temuan</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                            <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: ${barPercent}%"></div>
+                        </div>
+                    `;
+                    subBarsContainer.appendChild(div);
+                });
+            }
+
+            let tbody = document.getElementById('subElementFindingsTableBody');
+            tbody.innerHTML = '';
+
+            let totalRecCount = records.length;
+            // Precise Unique Airport Count computation
+            let uniqueAirportsSet = new Set();
+            records.forEach(r => {
+                if (r.bandara && String(r.bandara).trim() !== '') {
+                    uniqueAirportsSet.add(String(r.bandara).trim());
+                }
+            });
+            let uniqueAirportsCount = uniqueAirportsSet.size;
+            
+            let countInfoElem = document.getElementById('subMdlTableCountInfo');
+            if (countInfoElem) {
+                countInfoElem.textContent = `${totalRecCount} Temuan (${uniqueAirportsCount} Bandara)`;
+            }
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Tidak ada data temuan.</td></tr>`;
+            } else {
+                // Display ALL findings for this element without limiting
+                records.forEach((r, idx) => {
+                    let tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/40 border-b border-slate-800/60 text-[11px]';
+                    tr.innerHTML = `
+                        <td class="p-2.5 text-slate-500 text-center font-mono">${idx + 1}</td>
+                        <td class="p-2.5 font-bold text-slate-200">${r.bandara}</td>
+                        <td class="p-2.5 font-bold text-indigo-400 font-mono">${r.elemenParsed}</td>
+                        <td class="p-2.5 font-semibold text-slate-300">${r.jenisTemuan}</td>
+                        <td class="p-2.5 text-slate-300 font-normal leading-relaxed">${r.deskripsi}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('subElementModal').classList.remove('hidden');
+            safeCreateIcons();
+        }
+
+        function closeSubElementModal() {
+            document.getElementById('subElementModal').classList.add('hidden');
+        }
+
+        /* ==========================================================================
+           CHARTS GENERATION LOGIC
+           ========================================================================== */
+
+        function destroyChart(key) {
+            if (chartInstances[key]) {
+                chartInstances[key].destroy();
+            }
+        }
+
+        // Chart 1: Airport Bar
+        function renderChartAirport() {
+            destroyChart('airport');
+            const ctx = document.getElementById('chartAirport').getContext('2d');
+
+            let mapExpanded = {};
+            let mapUniqueSet = {};
+
+            filteredRecords.forEach(r => {
+                let b = r.bandara;
+                mapExpanded[b] = (mapExpanded[b] || 0) + 1;
+                if (!mapUniqueSet[b]) mapUniqueSet[b] = new Set();
+                mapUniqueSet[b].add(r.elemenParsed);
+            });
+
+            let labels = Object.keys(mapExpanded).sort();
+            let dataExpanded = labels.map(l => mapExpanded[l]);
+            let dataUnique = labels.map(l => mapUniqueSet[l].size);
+
+            chartInstances['airport'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Total Temuan Terurai', data: dataExpanded, backgroundColor: '#38bdf8', borderRadius: 6 },
+                        { label: 'Unique Elemen PP 50/2012', data: dataUnique, backgroundColor: '#f59e0b', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (evt, activeEls) => {
+                        if (activeEls.length > 0) {
+                            let idx = activeEls[0].index;
+                            let clickedBandara = labels[idx];
+                            document.getElementById('filterBandara').value = clickedBandara;
+                            applyFilters();
+                            showToast(`Filtered by Bandara: ${clickedBandara}`, "info");
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, color: '#94a3b8', font: { size: 12, weight: 'bold' } } },
+                        datalabels: {
+                            display: true, color: '#f8fafc', font: { weight: 'bold', size: 11 },
+                            anchor: 'end', align: 'top', offset: 2, formatter: (val) => val > 0 ? val : ''
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 }, grace: '15%' },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        // Chart 2: Keseluruhan Elemen PP 50
+        function renderChartElemenOverall() {
+            destroyChart('elemen');
+
+            let mapElemen = {};
+            filteredRecords.forEach(r => {
+                let el = r.elemenParsed;
+                mapElemen[el] = (mapElemen[el] || 0) + 1;
+            });
+
+            let sorted = Object.entries(mapElemen).sort((a, b) => b[1] - a[1]);
+            let labels = sorted.map(item => 'Elemen ' + item[0]);
+            let data = sorted.map(item => item[1]);
+
+            let container = document.getElementById('elemenChartContainer');
+            let dynamicHeight = Math.max(320, sorted.length * 36);
+            container.style.height = `${dynamicHeight}px`;
+
+            const ctx = document.getElementById('chartElemen').getContext('2d');
+
+            chartInstances['elemen'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Jumlah Temuan Elemen', data: data, backgroundColor: '#818cf8', borderRadius: 6 }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            display: true, color: '#f8fafc', font: { weight: 'bold', size: 11 },
+                            anchor: 'end', align: 'right', offset: 4, formatter: (val) => val > 0 ? val : ''
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 }, grace: '15%' },
+                        y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { weight: '600' } } }
+                    }
+                }
+            });
+        }
+
+        // Chart 3: Doughnut Severity
+        function renderChartJenis() {
+            destroyChart('jenis');
+            const ctx = document.getElementById('chartJenis').getContext('2d');
+
+            let mapJenis = {};
+            filteredRecords.forEach(r => {
+                let j = r.jenisTemuan;
+                mapJenis[j] = (mapJenis[j] || 0) + 1;
+            });
+
+            let labels = Object.keys(mapJenis);
+            let data = Object.values(mapJenis);
+
+            let colorPalette = { 'Minor': '#38bdf8', 'Mayor': '#fb923c', 'Kritikal': '#f43f5e', 'Observasi': '#c084fc' };
+            let bgColors = labels.map(l => colorPalette[l] || '#64748b');
+
+            chartInstances['jenis'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{ data: data, backgroundColor: bgColors, borderWidth: 2, borderColor: '#0f172a' }]
+                },
+                options: {
+                    layout: { padding: 30 },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (evt, activeEls) => {
+                        if (activeEls.length > 0) {
+                            let idx = activeEls[0].index;
+                            let clickedJenis = labels[idx];
+                            document.getElementById('filterJenis').value = clickedJenis;
+                            applyFilters();
+                            showToast(`Filtered by Severity: ${clickedJenis}`, "info");
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, color: '#94a3b8', font: { size: 11, weight: 'bold' } } },
+                        datalabels: {
+                            display: true, 
+                            color: '#ffffff', 
+                            font: { weight: 'bold', size: 10 },
+                            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            padding: 5,
+                            anchor: 'end',
+                            align: 'end',
+                            offset: 5,
+                            formatter: (val, ctx) => {
+                                let total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                                let perc = (val/total*100).toFixed(1);
+                                if (perc < 3 && val < 5) return ''; // Hide labels for very tiny slices to prevent overlap
+                                return `${ctx.chart.data.labels[ctx.dataIndex]}\n${val} (${perc}%)`;
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+        }
+
+        // Chart 4: Kategori Standar
+        function renderChartKategori() {
+            destroyChart('kategori');
+            const ctx = document.getElementById('chartKategori').getContext('2d');
+
+            let mapCat = { 'SOP': 0, 'SDM': 0, 'Fasilitas': 0 };
+            filteredRecords.forEach(r => {
+                let c = normalizeKategori(r.kategori);
+                mapCat[c] = (mapCat[c] || 0) + 1;
+            });
+
+            let labels = ['SOP', 'SDM', 'Fasilitas'];
+            let data = labels.map(l => mapCat[l]);
+
+            chartInstances['kategori'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Jumlah Temuan', data: data, backgroundColor: ['#0284c7', '#10b981', '#f59e0b'], borderRadius: 8 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (evt, activeEls) => {
+                        if (activeEls.length > 0) {
+                            let idx = activeEls[0].index;
+                            let clickedKat = labels[idx];
+                            document.getElementById('filterKategori').value = clickedKat;
+                            applyFilters();
+                            showToast(`Filtered by Kategori: ${clickedKat}`, "info");
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            display: true, color: '#f8fafc', font: { weight: 'bold', size: 12 },
+                            anchor: 'end', align: 'top', offset: 2, formatter: (val) => `${val}`
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 }, grace: '15%' },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { weight: 'bold', size: 12 } } }
+                    }
+                }
+            });
+        }
+
+        // Chart 5: Kriteria Temuan
+        function renderChartKriteria() {
+            destroyChart('kriteria');
+            const ctx = document.getElementById('chartKriteria').getContext('2d');
+
+            let mapKri = {};
+            filteredRecords.forEach(r => {
+                let k = r.kriteria;
+                mapKri[k] = (mapKri[k] || 0) + 1;
+            });
+
+            let sortedKri = Object.entries(mapKri).sort((a, b) => b[1] - a[1]);
+            let labels = sortedKri.map(item => item[0]);
+            let data = sortedKri.map(item => item[1]);
+
+            chartInstances['kriteria'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Jumlah Temuan', data: data, backgroundColor: '#2dd4bf', borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            display: true, color: '#f8fafc', font: { weight: 'bold', size: 11 },
+                            anchor: 'end', align: 'top', offset: 2, formatter: (val) => val > 0 ? val : ''
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 }, grace: '15%' },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' }, maxRotation: 35, minRotation: 0 } }
+                    }
+                }
+            });
+        }
+
+        // Chart 6: Dampak Temuan
+        function renderChartDampak() {
+            destroyChart('dampak');
+            const ctx = document.getElementById('chartDampak').getContext('2d');
+
+            let airports = Array.from(new Set(filteredRecords.map(r => r.bandara))).sort();
+            let impacts = Array.from(new Set(filteredRecords.map(r => r.dampak)));
+            let colors = ['#f43f5e', '#fb923c', '#eab308', '#06b6d4', '#8b5cf6', '#64748b'];
+
+            let datasets = impacts.map((imp, idx) => {
+                let data = airports.map(b => filteredRecords.filter(r => r.bandara === b && r.dampak === imp).length);
+                return { label: imp, data: data, backgroundColor: colors[idx % colors.length] };
+            });
+
+            chartInstances['dampak'] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: airports, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, color: '#94a3b8', font: { size: 11, weight: 'bold' } } },
+                        datalabels: {
+                            display: true, color: '#ffffff', font: { weight: 'bold', size: 10 },
+                            formatter: (val) => val > 0 ? val : ''
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#94a3b8' } },
+                        y: { stacked: true, beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        /* ==========================================================================
+           SUMMARY TABEL ELEMEN & SUB-ELEMEN PER BANDARA & SPREADSHEET EXPORT
+           ========================================================================== */
+
+        let cachedAirportSummaryData = [];
+
+        function renderAirportElementsSummaryTable() {
+            let tbody = document.getElementById('airportElementsSummaryBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let mapSummary = {};
+
+            filteredRecords.forEach(r => {
+                let b = r.bandara;
+                if (!mapSummary[b]) {
+                    mapSummary[b] = {
+                        bandara: b,
+                        totalFindings: 0,
+                        mainElemenSet: new Set(),
+                        subElemenSet: new Set()
+                    };
+                }
+
+                mapSummary[b].totalFindings++;
+
+                if (r.elemenMainNum && r.elemenMainNum >= 1 && r.elemenMainNum <= 12) {
+                    mapSummary[b].mainElemenSet.add(r.elemenMainNum);
+                }
+
+                if (r.elemenParsed) {
+                    mapSummary[b].subElemenSet.add(r.elemenParsed);
+                }
+            });
+
+            let sortedAirports = Object.keys(mapSummary).sort();
+            cachedAirportSummaryData = [];
+
+            if (sortedAirports.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500 font-medium">Tidak ada data bandara sesuai filter aktif.</td></tr>`;
+                return;
+            }
+
+            sortedAirports.forEach((b, i) => {
+                let d = mapSummary[b];
+                
+                let sortedMainElems = Array.from(d.mainElemenSet).sort((x, y) => x - y);
+                let mainElemsText = sortedMainElems.length > 0 ? sortedMainElems.map(e => `Elemen ${e}`).join(", ") : "-";
+
+                let sortedSubElems = Array.from(d.subElemenSet).sort();
+                let subElemsText = sortedSubElems.length > 0 ? sortedSubElems.join(", ") : "-";
+
+                // Save to cache for Excel Download
+                cachedAirportSummaryData.push({
+                    "No": i + 1,
+                    "Bandar Udara": b,
+                    "Total Temuan Terurai": d.totalFindings,
+                    "Jumlah Elemen Utama": sortedMainElems.length,
+                    "Rincian Elemen Utama (1-12)": mainElemsText,
+                    "Jumlah Sub-Elemen Unik": sortedSubElems.length,
+                    "Rincian Kode Sub-Elemen (PP 50/2012)": subElemsText
+                });
+
+                let row = document.createElement('tr');
+                row.className = "hover:bg-slate-800/40 transition border-b border-slate-800/60";
+                row.innerHTML = `
+                    <td class="p-3 font-bold text-slate-200">${b}</td>
+                    <td class="p-3 text-center font-bold text-sky-400 font-mono">${d.totalFindings}</td>
+                    <td class="p-3 text-center font-bold text-indigo-400 font-mono">${sortedMainElems.length}</td>
+                    <td class="p-3 text-slate-300 font-semibold max-w-xs leading-relaxed">
+                        <span class="inline-block bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 text-[10px] px-2 py-0.5 rounded-md font-mono">${mainElemsText}</span>
+                    </td>
+                    <td class="p-3 text-center font-bold text-amber-400 font-mono">${sortedSubElems.length}</td>
+                    <td class="p-3 text-slate-400 max-w-md font-mono text-[11px] leading-relaxed">
+                        ${subElemsText}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            safeCreateIcons();
+        }
+
+        // Dedicated Export Function for Airport Element & Sub-Element Summary Table
+        function exportAirportElementsSummaryExcel() {
+            if (!cachedAirportSummaryData || cachedAirportSummaryData.length === 0) {
+                showToast("Tidak ada data summary elemen untuk di-export", "warning");
+                return;
+            }
+
+            let worksheet = XLSX.utils.json_to_sheet(cachedAirportSummaryData);
+            
+            // Adjust column widths automatically
+            let columnWidths = [
+                { wch: 6 },   // No
+                { wch: 30 },  // Bandar Udara
+                { wch: 22 },  // Total Temuan Terurai
+                { wch: 22 },  // Jumlah Elemen Utama
+                { wch: 45 },  // Rincian Elemen Utama
+                { wch: 24 },  // Jumlah Sub-Elemen Unik
+                { wch: 60 }   // Rincian Kode Sub-Elemen
+            ];
+            worksheet['!cols'] = columnWidths;
+
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Summary Elemen Per Bandara");
+
+            let filename = `Summary_Elemen_SubElemen_Per_Bandara_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            showToast("Spreadsheet Summary Elemen & Sub-Elemen berhasil di-download!", "success");
+        }
+
+        // Dedicated Export Function for Airport Scoring Matrix Table (.xlsx)
+        function exportAirportMatrixExcel() {
+            let mapAirport = {};
+            filteredRecords.forEach(r => {
+                let b = r.bandara;
+                if (!mapAirport[b]) {
+                    mapAirport[b] = { totalExpanded: 0, uniqueElemenSet: new Set(), minor: 0, mayor: 0, kritikal: 0, observasi: 0 };
+                }
+                mapAirport[b].totalExpanded++;
+                mapAirport[b].uniqueElemenSet.add(r.elemenParsed);
+                let j = r.jenisTemuan.toLowerCase();
+                if (j.includes('minor')) mapAirport[b].minor++;
+                else if (j.includes('mayor')) mapAirport[b].mayor++;
+                else if (j.includes('kritikal') || j.includes('critical')) mapAirport[b].kritikal++;
+                else if (j.includes('observasi')) mapAirport[b].observasi++;
+            });
+
+            let sortedAirports = Object.keys(mapAirport).sort();
+            if (sortedAirports.length === 0) {
+                showToast("Tidak ada data matriks untuk di-export", "warning");
+                return;
+            }
+
+            let rows = sortedAirports.map((b, i) => {
+                let d = mapAirport[b];
+                let uniqueCount = d.uniqueElemenSet.size;
+                let scoreSmk3 = Math.max(0, Math.min(100, ((166 - uniqueCount) / 166) * 100)).toFixed(1);
+                let statusKepatuhan = parseFloat(scoreSmk3) >= 85 ? "Memuaskan" : parseFloat(scoreSmk3) >= 60 ? "Baik" : "Kurang";
+                return {
+                    "No": i + 1,
+                    "Bandara": b,
+                    "Total Temuan Terurai": d.totalExpanded,
+                    "Unique Elemen": uniqueCount,
+                    "Temuan Minor": d.minor,
+                    "Temuan Mayor": d.mayor,
+                    "Temuan Kritikal": d.kritikal,
+                    "Temuan Observasi": d.observasi,
+                    "Skor SMK3 (%)": scoreSmk3 + "%",
+                    "Tingkat Kepatuhan": statusKepatuhan
+                };
+            });
+
+            let worksheet = XLSX.utils.json_to_sheet(rows);
+            worksheet['!cols'] = [
+                { wch: 6 }, { wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 15 },
+                { wch: 15 }, { wch: 16 }, { wch: 18 }, { wch: 16 }, { wch: 20 }
+            ];
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Matriks Scoring Audit SMK3");
+            let filename = `Matriks_Scoring_Audit_SMK3_Per_Bandara_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            showToast("File Excel Matriks Scoring Audit berhasil di-download!", "success");
+        }
+
+        // Dedicated Export Function for Dashboard PowerPoint Summary (.pptx)
+        function exportDashboardPPTX() {
+            if (typeof PptxGenJS === 'undefined') {
+                showToast("Library PptxGenJS belum dimuat. Periksa koneksi internet.", "error");
+                return;
+            }
+
+            showToast("Menyiapkan berkas PowerPoint (PPTX)...", "info");
+
+            let pptx = new PptxGenJS();
+            pptx.layout = 'LAYOUT_16x9';
+
+            const BG_COLOR = "0F172A";
+            const CARD_BG = "1E293B";
+            const TEXT_LIGHT = "F8FAFC";
+            const TEXT_MUTED = "94A3B8";
+            const ACCENT_SKY = "0284C7";
+            const ACCENT_AMBER = "F59E0B";
+            const ACCENT_EMERALD = "10B981";
+
+            let totalExpanded = filteredRecords.length;
+            let closedCount = filteredRecords.filter(r => r.status === 'CLOSED').length;
+            let mayorCount = filteredRecords.filter(r => r.jenisTemuan.toLowerCase().includes('mayor')).length;
+            let kritikalCount = filteredRecords.filter(r => r.jenisTemuan.toLowerCase().includes('kritikal')).length;
+            
+            let mapAirport = {};
+            let elemCountsMap = {};
+
+            filteredRecords.forEach(r => {
+                let b = r.bandara;
+                if (!mapAirport[b]) {
+                    mapAirport[b] = { totalExpanded: 0, uniqueElemenSet: new Set(), minor: 0, mayor: 0, kritikal: 0, observasi: 0 };
+                }
+                mapAirport[b].totalExpanded++;
+                mapAirport[b].uniqueElemenSet.add(r.elemenParsed);
+                let j = r.jenisTemuan.toLowerCase();
+                if (j.includes('minor')) mapAirport[b].minor++;
+                else if (j.includes('mayor')) mapAirport[b].mayor++;
+                else if (j.includes('kritikal')) mapAirport[b].kritikal++;
+                else if (j.includes('observasi')) mapAirport[b].observasi++;
+
+                if (r.elemenMainNum) {
+                    elemCountsMap[r.elemenMainNum] = (elemCountsMap[r.elemenMainNum] || 0) + 1;
+                }
+            });
+
+            let sortedAirports = Object.keys(mapAirport).sort();
+            let totalAirportsCount = sortedAirports.length;
+
+            let airportScoresSum = 0;
+            sortedAirports.forEach(b => {
+                let uCount = mapAirport[b].uniqueElemenSet.size;
+                let score = Math.max(0, Math.min(100, ((166 - uCount) / 166) * 100));
+                airportScoresSum += score;
+            });
+
+            let overallSmk3Score = totalAirportsCount > 0 ? (airportScoresSum / totalAirportsCount).toFixed(1) : "100.0";
+            let capaRate = totalExpanded > 0 ? Math.round((closedCount / totalExpanded) * 100) : 0;
+
+            // SLIDE 1: Cover Slide
+            let slide1 = pptx.addSlide();
+            slide1.background = { color: BG_COLOR };
+            slide1.addShape(pptx.shapes.RECTANGLE, { x: 0, y: 0, w: '100%', h: 0.15, fill: { color: ACCENT_SKY } });
+            
+            slide1.addText("EXECUTIVE SUMMARY AUDIT SMK3", {
+                x: 0.8, y: 1.8, w: 11.5, h: 0.5,
+                fontFace: "Arial", fontSize: 14, color: ACCENT_AMBER, bold: true, tracking: 2
+            });
+            slide1.addText("DASHBOARD NCR SAFETY OVERSIGHT", {
+                x: 0.8, y: 2.3, w: 11.5, h: 1.0,
+                fontFace: "Arial", fontSize: 32, color: TEXT_LIGHT, bold: true
+            });
+            slide1.addText("Monitoring Kepatuhan Operational Safety & Scoring PP No. 50 Tahun 2012 (166 Kriteria Audit)", {
+                x: 0.8, y: 3.4, w: 11.5, h: 0.5,
+                fontFace: "Arial", fontSize: 13, color: TEXT_MUTED
+            });
+
+            slide1.addShape(pptx.shapes.RECTANGLE, {
+                x: 0.8, y: 4.4, w: 11.7, h: 1.8,
+                fill: { color: CARD_BG }, line: { color: "334155", width: 1 }
+            });
+            slide1.addText(`Tanggal Laporan: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}`, {
+                x: 1.1, y: 4.7, w: 5.5, h: 0.4, fontFace: "Arial", fontSize: 12, color: TEXT_LIGHT, bold: true
+            });
+            slide1.addText(`Jumlah Bandar Udara Ter-audit: ${totalAirportsCount} Bandara`, {
+                x: 1.1, y: 5.2, w: 5.5, h: 0.4, fontFace: "Arial", fontSize: 12, color: ACCENT_SKY
+            });
+            slide1.addText(`Formulasi Scoring: ((166 - Unique Elemen) / 166) × 100%`, {
+                x: 6.8, y: 4.7, w: 5.3, h: 0.4, fontFace: "Arial", fontSize: 12, color: ACCENT_AMBER, bold: true
+            });
+            slide1.addText(`Rerata Skor Kepatuhan Nasional: ${overallSmk3Score}%`, {
+                x: 6.8, y: 5.2, w: 5.3, h: 0.4, fontFace: "Arial", fontSize: 12, color: ACCENT_EMERALD, bold: true
+            });
+
+            // SLIDE 2: Rerata Skor SMK3 & Ringkasan Metriks Utama
+            let slide2 = pptx.addSlide();
+            slide2.background = { color: BG_COLOR };
+            slide2.addText("RERATA SKOR SMK3 & RINGKASAN METRIKS UTAMA", {
+                x: 0.8, y: 0.5, w: 11.5, h: 0.6, fontFace: "Arial", fontSize: 20, color: TEXT_LIGHT, bold: true
+            });
+
+            const cards = [
+                { title: "RERATA SKOR SMK3", val: `${overallSmk3Score}%`, desc: "Rerata Skor Unique Elemen (PP 50/2012)", color: ACCENT_EMERALD },
+                { title: "TOTAL TEMUAN TERURAI", val: `${totalExpanded}`, desc: "Parsed & Expanded Findings", color: ACCENT_SKY },
+                { title: "PENYELESAIAN CAPA", val: `${capaRate}%`, desc: `${closedCount} dari ${totalExpanded} Temuan Closed`, color: "8B5CF6" },
+                { title: "TEMUAN MAYOR & KRITIKAL", val: `${mayorCount + kritikalCount}`, desc: "Prioritas Penanganan & Perbaikan", color: "F43F5E" }
+            ];
+
+            cards.forEach((c, idx) => {
+                let xPos = 0.8 + (idx % 2) * 5.9;
+                let yPos = 1.3 + Math.floor(idx / 2) * 2.6;
+
+                slide2.addShape(pptx.shapes.RECTANGLE, {
+                    x: xPos, y: yPos, w: 5.6, h: 2.3,
+                    fill: { color: CARD_BG }, line: { color: "334155", width: 1 }
+                });
+                slide2.addText(c.title, {
+                    x: xPos + 0.3, y: yPos + 0.3, w: 5.0, h: 0.3,
+                    fontFace: "Arial", fontSize: 11, color: TEXT_MUTED, bold: true
+                });
+                slide2.addText(c.val, {
+                    x: xPos + 0.3, y: yPos + 0.7, w: 5.0, h: 0.9,
+                    fontFace: "Arial", fontSize: 32, color: c.color, bold: true
+                });
+                slide2.addText(c.desc, {
+                    x: xPos + 0.3, y: yPos + 1.7, w: 5.0, h: 0.3,
+                    fontFace: "Arial", fontSize: 10, color: TEXT_MUTED
+                });
+            });
+
+            // SLIDE 3: Ringkasan Top 5 Elemen Paling Dominan
+            let slide3 = pptx.addSlide();
+            slide3.background = { color: BG_COLOR };
+            slide3.addText("RINGKASAN TOP 5 ELEMEN PALING DOMINAN", {
+                x: 0.8, y: 0.5, w: 11.5, h: 0.6, fontFace: "Arial", fontSize: 20, color: TEXT_LIGHT, bold: true
+            });
+
+            let sortedElemNums = Object.keys(elemCountsMap).sort((a, b) => elemCountsMap[b] - elemCountsMap[a]);
+            let top5Nums = sortedElemNums.slice(0, 5);
+
+            let top5Rows = [
+                [
+                    { text: "Peringkat", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Kode Elemen", options: { bold: true, color: TEXT_LIGHT, fill: "090D16" } },
+                    { text: "Judul Elemen Audit SMK3 (PP 50/2012)", options: { bold: true, color: TEXT_LIGHT, fill: "090D16" } },
+                    { text: "Jumlah Temuan", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Prosentase (%)", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } }
+                ]
+            ];
+
+            top5Nums.forEach((num, idx) => {
+                let info = SMK3_ELEMENTS_DICT[num];
+                let cnt = elemCountsMap[num];
+                let pct = totalExpanded > 0 ? ((cnt / totalExpanded) * 100).toFixed(1) : "0.0";
+
+                top5Rows.push([
+                    { text: `#${idx + 1}`, options: { color: ACCENT_AMBER, bold: true, align: "center" } },
+                    { text: `Elemen ${num}`, options: { color: ACCENT_SKY, bold: true } },
+                    { text: info ? info.title : `Elemen ${num}`, options: { color: TEXT_LIGHT } },
+                    { text: `${cnt}`, options: { color: TEXT_LIGHT, bold: true, align: "center" } },
+                    { text: `${pct}%`, options: { color: ACCENT_EMERALD, bold: true, align: "center" } }
+                ]);
+            });
+
+            slide3.addTable(top5Rows, {
+                x: 0.8, y: 1.4, w: 11.7, colW: [1.2, 1.8, 5.2, 1.8, 1.7],
+                fontSize: 11, border: { pt: 0.5, color: "334155" }
+            });
+
+            // SLIDE 4: Jumlah Temuan Elemen Secara Keseluruhan (Elemen 1-12 Breakdown)
+            let slide4 = pptx.addSlide();
+            slide4.background = { color: BG_COLOR };
+            slide4.addText("JUMLAH TEMUAN ELEMEN (PP 50 TH 2012) SECARA KESELURUHAN", {
+                x: 0.8, y: 0.5, w: 11.5, h: 0.6, fontFace: "Arial", fontSize: 20, color: TEXT_LIGHT, bold: true
+            });
+
+            let elemOverallRows = [
+                [
+                    { text: "No", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Elemen Audit SMK3 (PP 50/2012)", options: { bold: true, color: TEXT_LIGHT, fill: "090D16" } },
+                    { text: "Frekuensi Temuan", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Kontribusi (%)", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } }
+                ]
+            ];
+
+            for (let i = 1; i <= 12; i++) {
+                let info = SMK3_ELEMENTS_DICT[i];
+                let cnt = elemCountsMap[i] || 0;
+                let pct = totalExpanded > 0 ? ((cnt / totalExpanded) * 100).toFixed(1) : "0.0";
+
+                elemOverallRows.push([
+                    { text: `${i}`, options: { color: TEXT_MUTED, align: "center" } },
+                    { text: `Elemen ${i}: ${info.title}`, options: { color: TEXT_LIGHT } },
+                    { text: `${cnt}`, options: { color: cnt > 0 ? ACCENT_SKY : TEXT_MUTED, bold: true, align: "center" } },
+                    { text: `${pct}%`, options: { color: cnt > 0 ? ACCENT_AMBER : TEXT_MUTED, align: "center" } }
+                ]);
+            }
+
+            slide4.addTable(elemOverallRows, {
+                x: 0.8, y: 1.2, w: 11.7, colW: [0.8, 6.7, 2.2, 2.0],
+                fontSize: 9.5, border: { pt: 0.5, color: "334155" }
+            });
+
+            // SLIDE 5: Airport Scoring Matrix Table
+            let slide5 = pptx.addSlide();
+            slide5.background = { color: BG_COLOR };
+            slide5.addText("MATRIKS REKAPITULASI SCORING AUDIT PER BANDARA", {
+                x: 0.8, y: 0.5, w: 11.5, h: 0.6, fontFace: "Arial", fontSize: 20, color: TEXT_LIGHT, bold: true
+            });
+
+            let tableRows = [
+                [
+                    { text: "Bandara", options: { bold: true, color: TEXT_LIGHT, fill: "090D16" } },
+                    { text: "Total Temuan", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Unique Elemen", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Minor", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Mayor", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Kritikal", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Skor SMK3", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } },
+                    { text: "Tingkat Kepatuhan", options: { bold: true, color: TEXT_LIGHT, fill: "090D16", align: "center" } }
+                ]
+            ];
+
+            sortedAirports.slice(0, 10).forEach(b => {
+                let d = mapAirport[b];
+                let uCount = d.uniqueElemenSet.size;
+                let scoreSmk3 = Math.max(0, Math.min(100, ((166 - uCount) / 166) * 100)).toFixed(1);
+                let statusKepatuhan = parseFloat(scoreSmk3) >= 85 ? "Memuaskan" : parseFloat(scoreSmk3) >= 60 ? "Baik" : "Kurang";
+
+                tableRows.push([
+                    { text: b, options: { color: TEXT_LIGHT } },
+                    { text: `${d.totalExpanded}`, options: { color: ACCENT_SKY, align: "center" } },
+                    { text: `${uCount}`, options: { color: ACCENT_AMBER, align: "center" } },
+                    { text: `${d.minor}`, options: { color: TEXT_LIGHT, align: "center" } },
+                    { text: `${d.mayor}`, options: { color: "FB923C", align: "center" } },
+                    { text: `${d.kritikal}`, options: { color: "F43F5E", align: "center" } },
+                    { text: `${scoreSmk3}%`, options: { color: ACCENT_EMERALD, bold: true, align: "center" } },
+                    { text: statusKepatuhan, options: { color: parseFloat(scoreSmk3) >= 85 ? ACCENT_EMERALD : ACCENT_AMBER, bold: true, align: "center" } }
+                ]);
+            });
+
+            slide5.addTable(tableRows, {
+                x: 0.8, y: 1.3, w: 11.7, colW: [2.5, 1.3, 1.3, 1.1, 1.1, 1.1, 1.5, 1.8],
+                fontSize: 10, border: { pt: 0.5, color: "334155" }
+            });
+
+            pptx.writeFile({ fileName: `Summary_Dashboard_Safety_Oversight_${new Date().toISOString().slice(0, 10)}.pptx` })
+                .then(() => {
+                    showToast("Presentation PowerPoint (.pptx) lengkap berhasil di-download!", "success");
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Gagal membuat berkas PPTX.", "error");
+                });
+        }
+
+        /* ==========================================================================
+           MATRIX & MASTER DATA TABLE (WITH ACCURATE UNIQUE ELEMENT SCORING RESULT)
+           ========================================================================== */
+
+        function renderAirportMatrix() {
+            let tbody = document.getElementById('airportMatrixBody');
+            tbody.innerHTML = '';
+
+            let mapAirport = {};
+            filteredRecords.forEach(r => {
+                let b = r.bandara;
+                if (!mapAirport[b]) {
+                    mapAirport[b] = {
+                        totalExpanded: 0,
+                        uniqueElemenSet: new Set(),
+                        minor: 0, mayor: 0, kritikal: 0, observasi: 0
+                    };
+                }
+
+                mapAirport[b].totalExpanded++;
+                mapAirport[b].uniqueElemenSet.add(r.elemenParsed);
+
+                let j = r.jenisTemuan.toLowerCase();
+                if (j.includes('minor')) mapAirport[b].minor++;
+                else if (j.includes('mayor')) mapAirport[b].mayor++;
+                else if (j.includes('kritikal') || j.includes('critical')) mapAirport[b].kritikal++;
+                else if (j.includes('observasi')) mapAirport[b].observasi++;
+            });
+
+            let sortedAirports = Object.keys(mapAirport).sort();
+
+            if (sortedAirports.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-500 font-medium">Tidak ada data bandara sesuai filter.</td></tr>`;
+                return;
+            }
+
+            sortedAirports.forEach(b => {
+                let d = mapAirport[b];
+                let uniqueCount = d.uniqueElemenSet.size;
+
+                // FORMULA BASED ON UNIQUE ELEMEN: ((166 - uniqueCount) / 166) * 100%
+                let scoreSmk3 = Math.max(0, Math.min(100, ((166 - uniqueCount) / 166) * 100)).toFixed(1);
+
+                let badgeHtml = '';
+                if (parseFloat(scoreSmk3) >= 85) {
+                    badgeHtml = `<span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/30">Memuaskan (${scoreSmk3}%)</span>`;
+                } else if (parseFloat(scoreSmk3) >= 60) {
+                    badgeHtml = `<span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-full text-[10px] font-bold border border-amber-500/30">Baik (${scoreSmk3}%)</span>`;
+                } else {
+                    badgeHtml = `<span class="px-2.5 py-1 bg-rose-500/10 text-rose-400 rounded-full text-[10px] font-bold border border-rose-500/30">Kurang (${scoreSmk3}%)</span>`;
+                }
+
+                let row = document.createElement('tr');
+                row.className = "hover:bg-slate-800/40 transition border-b border-slate-800/60";
+                row.innerHTML = `
+                    <td class="p-3 font-bold text-slate-200">${b}</td>
+                    <td class="p-3 text-center font-bold text-sky-400 font-mono">${d.totalExpanded}</td>
+                    <td class="p-3 text-center font-bold text-amber-400 font-mono">${uniqueCount}</td>
+                    <td class="p-3 text-center font-bold text-slate-300 font-mono">${d.minor}</td>
+                    <td class="p-3 text-center font-bold text-orange-400 font-mono">${d.mayor}</td>
+                    <td class="p-3 text-center font-bold text-rose-400 font-mono">${d.kritikal}</td>
+                    <td class="p-3 text-center font-bold text-purple-400 font-mono">${d.observasi}</td>
+                    <td class="p-3 text-center font-extrabold text-emerald-400 font-mono text-sm bg-emerald-950/20">${scoreSmk3}%</td>
+                    <td class="p-3 text-center">${badgeHtml}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getSearchedRecords() {
+            let dataset = filteredRecords;
+            if (searchQuery) {
+                let q = searchQuery.toLowerCase();
+                dataset = dataset.filter(r => {
+                    return (r.bandara && r.bandara.toLowerCase().includes(q)) ||
+                           (r.elemenParsed && r.elemenParsed.toLowerCase().includes(q)) ||
+                           (r.kategori && r.kategori.toLowerCase().includes(q)) ||
+                           (r.kriteria && r.kriteria.toLowerCase().includes(q)) ||
+                           (r.dampak && r.dampak.toLowerCase().includes(q)) ||
+                           (r.deskripsi && r.deskripsi.toLowerCase().includes(q)) ||
+                           (r.jenisTemuan && r.jenisTemuan.toLowerCase().includes(q));
+                });
+            }
+
+            if (sortState.column) {
+                let col = sortState.column;
+                let dir = sortState.direction === 'asc' ? 1 : -1;
+                dataset = [...dataset].sort((a, b) => {
+                    let valA = a[col] || '';
+                    let valB = b[col] || '';
+                    return valA.localeCompare(valB) * dir;
+                });
+            }
+
+            return dataset;
+        }
+
+        function sortTable(columnKey) {
+            if (sortState.column === columnKey) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = columnKey;
+                sortState.direction = 'asc';
+            }
+            renderDetailTable();
+        }
+
+        function renderDetailTable() {
+            let tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+
+            let dataset = getSearchedRecords();
+            let total = dataset.length;
+
+            let totalPages = Math.ceil(total / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            let startIndex = (currentPage - 1) * pageSize;
+            let endIndex = Math.min(startIndex + pageSize, total);
+
+            document.getElementById('tablePaginationInfo').textContent = 
+                total > 0 ? `Menampilkan ${startIndex + 1} - ${endIndex} dari ${total} temuan terurai` : `Menampilkan 0 - 0 dari 0 data`;
+
+            document.getElementById('pageIndicator').textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPage <= 1;
+            document.getElementById('btnNextPage').disabled = currentPage >= totalPages;
+
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500 font-medium">Tidak ada data temuan yang cocok dengan pencarian / filter.</td></tr>`;
+                return;
+            }
+
+            let pageItems = dataset.slice(startIndex, endIndex);
+
+            pageItems.forEach((r, idx) => {
+                let jenisLower = r.jenisTemuan.toLowerCase();
+                let jenisBadge = '';
+                if (jenisLower.includes('minor')) jenisBadge = `<span class="px-2 py-0.5 bg-sky-500/10 text-sky-400 rounded font-bold text-[10px] border border-sky-500/30">Minor</span>`;
+                else if (jenisLower.includes('mayor')) jenisBadge = `<span class="px-2 py-0.5 bg-orange-500/10 text-orange-400 rounded font-bold text-[10px] border border-orange-500/30">Mayor</span>`;
+                else if (jenisLower.includes('kritikal') || jenisLower.includes('critical')) jenisBadge = `<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded font-bold text-[10px] border border-rose-500/30">Kritikal</span>`;
+                else jenisBadge = `<span class="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded font-bold text-[10px] border border-purple-500/30">Observasi</span>`;
+
+                let katBadge = `<span class="px-2 py-0.5 bg-slate-950 text-slate-300 rounded font-semibold text-[10px] border border-slate-800">${r.kategori}</span>`;
+
+                let statusBadge = '';
+                if (r.status === 'OPEN') statusBadge = `<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded font-bold text-[10px] border border-rose-500/30">OPEN</span>`;
+                else if (r.status === 'IN PROGRESS') statusBadge = `<span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded font-bold text-[10px] border border-amber-500/30">PROGRESS</span>`;
+                else statusBadge = `<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded font-bold text-[10px] border border-emerald-500/30">CLOSED</span>`;
+
+                let tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition border-b border-slate-800/60';
+                tr.innerHTML = `
+                    <td class="p-3 text-center font-medium text-slate-500">${startIndex + idx + 1}</td>
+                    <td class="p-3 font-bold text-slate-200">${r.bandara}</td>
+                    <td class="p-3">${jenisBadge}</td>
+                    <td class="p-3 font-bold text-sky-400 font-mono">${r.elemenParsed}</td>
+                    <td class="p-3">${katBadge}</td>
+                    <td class="p-3 text-slate-300 font-medium">${r.kriteria}</td>
+                    <td class="p-3 text-slate-400">${r.dampak}</td>
+                    <td class="p-3 text-slate-300 font-normal leading-relaxed line-clamp-2 max-w-xs" title="${r.deskripsi}">${r.deskripsi}</td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3 text-center no-print">
+                        <button onclick="openDetailModal(${r.id})" class="px-2.5 py-1 bg-sky-950 hover:bg-sky-900 text-sky-400 rounded-lg border border-sky-500/30 font-bold text-[11px] transition cursor-pointer">
+                            Edit CAPA
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            safeCreateIcons();
+        }
+
+        function onSearchChange() {
+            searchQuery = document.getElementById('tableSearchInput').value || '';
+            currentPage = 1;
+            renderDetailTable();
+        }
+
+        function onPageSizeChange() {
+            pageSize = parseInt(document.getElementById('pageSizeSelect').value, 10);
+            currentPage = 1;
+            renderDetailTable();
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderDetailTable();
+        }
+
+        /* ==========================================================================
+           MANUAL ADD FINDINGS HANDLER
+           ========================================================================== */
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function handleManualAddSubmit(e) {
+            e.preventDefault();
+
+            let newObj = {
+                "BANDARA": document.getElementById('addBandara').value.trim(),
+                "Jenis Temuan": document.getElementById('addJenis').value,
+                "PP 50 Th 2012": document.getElementById('addElemen').value.trim(),
+                "Kategori Temuan": document.getElementById('addKategori').value,
+                "Kriteria Temuan": document.getElementById('addKriteria').value.trim(),
+                "Dampak Temuan": document.getElementById('addDampak').value.trim(),
+                "Deskripsi": document.getElementById('addDeskripsi').value.trim(),
+                "Status": document.getElementById('addStatus').value,
+                "PIC": document.getElementById('addPic').value.trim(),
+                "TargetDate": document.getElementById('addTargetDate').value
+            };
+
+            currentRawData.unshift(newObj);
+            saveToLocalStorage(currentRawData);
+            processRawData(currentRawData, "Custom Dataset", true);
+            closeAddModal();
+            showToast("Temuan baru berhasil ditambahkan!", "success");
+        }
+
+        /* ==========================================================================
+           EXCEL IMPORT & EXPORT
+           ========================================================================== */
+
+        function exportFilteredData() {
+            if (filteredRecords.length === 0) {
+                showToast("Tidak ada data untuk di-export", "warning");
+                return;
+            }
+
+            let exportRows = filteredRecords.map((r, i) => {
+                return {
+                    "No": i + 1,
+                    "Bandara": r.bandara,
+                    "Jenis Temuan": r.jenisTemuan,
+                    "Elemen PP 50/2012 (Parsed)": r.elemenParsed,
+                    "Elemen Original": r.elemenOriginal,
+                    "Kategori Temuan": r.kategori,
+                    "Kriteria Temuan": r.kriteria,
+                    "Dampak Temuan": r.dampak,
+                    "Deskripsi Temuan": r.deskripsi,
+                    "Status CAPA": r.status,
+                    "PIC": r.pic || "",
+                    "Target Selesai": r.targetDate || ""
+                };
+            });
+
+            let worksheet = XLSX.utils.json_to_sheet(exportRows);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Hasil Audit Terurai");
+
+            let filename = `Rekap_NCR_Safety_Oversight_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            showToast("File Excel berhasil di-download!", "success");
+        }
+
+        function openUploadModal() {
+            let fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.value = '';
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        }
+
+        function handleFileSelect(event) {
+            let file = event.target ? (event.target.files ? event.target.files[0] : null) : (event.files ? event.files[0] : null);
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, { type: 'array' });
+                    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                        showToast("File Excel tidak memiliki worksheet!", "error");
+                        return;
+                    }
+
+                    let firstSheetName = workbook.SheetNames[0];
+                    let worksheet = workbook.Sheets[firstSheetName];
+                    let parsedData = parseExcelSheetToJSON(worksheet);
+
+                    if (!parsedData || parsedData.length === 0) {
+                        showToast("File Excel kosong atau format tabel tidak terdeteksi!", "error");
+                        return;
+                    }
+
+                    processRawData(parsedData, file.name);
+                    document.getElementById('activeSourceLabel').textContent = file.name;
+                    closeUploadModal();
+                    showToast(`Berhasil mengimpor ${parsedData.length} baris data dari file: ${file.name}!`, "success");
+                } catch (err) {
+                    console.error("Upload error:", err);
+                    showToast("Gagal membaca file Excel/CSV. Pastikan format valid.", "error");
+                } finally {
+                    let fileInput = document.getElementById('fileInput');
+                    if (fileInput) fileInput.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Drag & Drop
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('border-sky-400', 'bg-sky-950/40'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-sky-400', 'bg-sky-950/40'), false);
+            });
+            dropZone.addEventListener('drop', (e) => {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+                if (files && files.length > 0) handleFileSelect({ files: files });
+            });
+        }
+
+        function resetDataToDefault() {
+            if (confirm("Apakah Anda yakin ingin mengembalikan data ke dataset demo default? Data perubahan Anda akan di-reset.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                processRawData(DEFAULT_RAW_DATA, "Demo Dataset");
+                document.getElementById('activeSourceLabel').textContent = "REKAP SAFETY OVERSIGHT (Demo)";
+                showToast("Data telah dikembalikan ke dataset standar demo", "info");
+            }
+        }
+
+        /* ==========================================================================
+           MODAL DETAIL & CAPA EDITING
+           ========================================================================== */
+
+        function openDetailModal(recordId) {
+            let record = expandedRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            activeRecordId = recordId;
+
+            document.getElementById('mdlBandara').textContent = record.bandara;
+            document.getElementById('mdlJenis').textContent = record.jenisTemuan;
+            document.getElementById('mdlElemen').textContent = record.elemenParsed;
+            document.getElementById('mdlKategori').textContent = record.kategori;
+            document.getElementById('mdlKriteria').textContent = record.kriteria;
+            document.getElementById('mdlDampak').textContent = record.dampak;
+            document.getElementById('mdlDeskripsi').textContent = record.deskripsi;
+            document.getElementById('mdlStatusSelect').value = record.status || 'OPEN';
+            document.getElementById('mdlPicInput').value = record.pic || '';
+            document.getElementById('mdlTargetDateInput').value = record.targetDate || '';
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            activeRecordId = null;
+        }
+
+        function saveRecordStatus() {
+            if (activeRecordId === null) return;
+
+            let record = expandedRecords.find(r => r.id === activeRecordId);
+            if (record) {
+                let newStatus = document.getElementById('mdlStatusSelect').value;
+                let newPic = document.getElementById('mdlPicInput').value.trim();
+                let newTargetDate = document.getElementById('mdlTargetDateInput').value;
+
+                record.status = newStatus;
+                record.pic = newPic;
+                record.targetDate = newTargetDate;
+
+                // Sync back to raw index
+                if (currentRawData[record.rawIndex]) {
+                    currentRawData[record.rawIndex]["Status"] = newStatus;
+                    currentRawData[record.rawIndex]["PIC"] = newPic;
+                    currentRawData[record.rawIndex]["TargetDate"] = newTargetDate;
+                }
+
+                saveToLocalStorage(currentRawData);
+                applyFilters();
+                closeDetailModal();
+                showToast("Status & Tindak Lanjut CAPA berhasil diperbarui!", "success");
+            }
+        }
+
+        function deleteCurrentRecord() {
+            if (activeRecordId === null) return;
+            if (confirm("Apakah Anda yakin ingin menghapus data temuan ini?")) {
+                let record = expandedRecords.find(r => r.id === activeRecordId);
+                if (record && currentRawData[record.rawIndex]) {
+                    currentRawData.splice(record.rawIndex, 1);
+                    saveToLocalStorage(currentRawData);
+                    processRawData(currentRawData, "Custom Dataset", true);
+                    closeDetailModal();
+                    showToast("Data temuan berhasil dihapus", "info");
+                }
+            }
+        }
+
+        function openElementsModal() {
+            document.getElementById('elementsModal').classList.remove('hidden');
+        }
+
+        function closeElementsModal() {
+            document.getElementById('elementsModal').classList.add('hidden');
+        }
+
+        /* ==========================================================================
+           TOAST NOTIFICATIONS
+           ========================================================================== */
+
+        function showToast(message, type = 'info') {
+            let container = document.getElementById('toastContainer');
+            let toast = document.createElement('div');
+            
+            let bgColors = {
+                success: 'bg-emerald-950 border-emerald-600 text-emerald-200',
+                warning: 'bg-amber-950 border-amber-600 text-amber-200',
+                error: 'bg-rose-950 border-rose-600 text-rose-200',
+                info: 'bg-slate-900 border-slate-700 text-slate-200'
+            };
+
+            let icons = {
+                success: 'check-circle',
+                warning: 'alert-triangle',
+                error: 'alert-circle',
+                info: 'info'
+            };
+
+            toast.className = `flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold pointer-events-auto transition transform duration-300 translate-y-2 opacity-0 ${bgColors[type] || bgColors.info}`;
+            toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-4 h-4"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            safeCreateIcons();
+
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        /* ==========================================================================
+           INITIALIZATION
+           ========================================================================== */
+
+        function initDashboard() {
+            safeCreateIcons();
+            let savedData = loadFromLocalStorage();
+            if (savedData) {
+                processRawData(savedData, "Local Storage Data", true);
+                document.getElementById('activeSourceLabel').textContent = "REKAP SAFETY OVERSIGHT (Tersimpan Local)";
+            } else {
+                processRawData(DEFAULT_RAW_DATA, "Demo Dataset");
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDashboard);
+        } else {
+            initDashboard();
+        }
+    </script>
+</body>
+</html>
